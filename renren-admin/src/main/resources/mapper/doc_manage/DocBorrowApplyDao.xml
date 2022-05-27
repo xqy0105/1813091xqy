@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.DocBorrowApplyDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.DocBorrowApplyEntity" id="docBorrowApplyMap">
+        <result property="docBorrowApplyId" column="doc_borrow_apply_id"/>
+        <result property="approverId" column="approver_id"/>
+        <result property="approverName" column="approver_name"/>
+        <result property="borrowerId" column="borrower_id"/>
+        <result property="borrowerName" column="borrower_name"/>
+        <result property="docId" column="doc_id"/>
+        <result property="docName" column="doc_name"/>
+        <result property="applytime" column="applytime"/>
+        <result property="returnTime" column="return_time"/>
+        <result property="borrownum" column="borrownum"/>
+        <result property="approveTime" column="approve_time"/>
+        <result property="approveInfo" column="approve_info"/>
+        <result property="applyResult" column="apply_result"/>
+        <result property="expirationDate" column="expiration_date"/>
+        <result property="comm" column="comm"/>
+    </resultMap>
+    <select id="docBorrowApplyList" parameterType="Map" resultType="io.renren.modules.doc_manage.entity.DocBorrowApplyEntity">
+        select dba.*, approve_user.username as approver_name, borrow_user.username as borrower_name, fms_document.doc_name as doc_name
+        from
+        fms_doc_borrow_apply as dba
+        left join sys_user as approve_user on dba.approver_id = approve_user.user_id
+        left join sys_user as borrow_user on dba.borrower_id = borrow_user.user_id
+        left join fms_document on fms_document.doc_id = dba.doc_id
+        where fms_document.del_flag='0'
+        <if test="page.params.borrowerName!=null and page.params.borrowerName!=''">
+            and  borrow_user.username=#{page.params.borrowerName}
+        </if>
+        <if test="page.params.applyResult!=null and page.params.applyResult!=''">
+            and apply_Result=#{page.params.applyResult}
+        </if>
+        ${page.params.condition}
+        order by dba.applytime desc,dba.doc_borrow_apply_id desc
+    </select>
+    <select id="docBorrowList" parameterType="Map" resultType="io.renren.modules.doc_manage.entity.DocBorrowApplyEntity">
+        SELECT
+        apply.doc_id
+        ,apply.applytime
+        , apply.borrownum
+        , apply.apply_result
+        , apply.approve_info
+        , apply.approve_time
+        , borrow.expiration_date
+        , borrow.return_time
+        , doc.doc_name as doc_name
+        FROM
+        fms_doc_borrow_apply apply
+        left JOIN fms_doc_borrow borrow
+        ON (apply.doc_borrow_apply_id = borrow.doc_borrow_apply_id)
+        left JOIN fms_document doc
+        ON (apply.doc_id = doc.doc_id)
+        where 1=1
+        and apply.borrower_id=#{page.params.userId}
+
+        <if test="page.params.applyResult!=null and page.params.applyResult!='' ">
+            and apply_Result=#{page.params.applyResult}
+        </if>
+        <if test="page.params.overtime!=null and page.params.overtime!='' ">
+            <choose>
+                <when test="page.params.overtime==-1">
+                    <![CDATA[
+                and DATEDIFF(expiration_date,NOW())<0
+                and return_result<>1
+                ]]>
+                </when>
+                <when test="page.params.overtime==3">
+                    <![CDATA[
+                and DATEDIFF(expiration_date,NOW())<=3
+                and return_result<>1
+                ]]>
+                </when>
+                <otherwise>
+                    and 1=1
+                </otherwise>
+
+            </choose>
+
+        </if>
+        ${page.params.condition}
+
+    </select>
+
+
+    <select id="apply" parameterType="java.util.Map" resultType="Object" useCache="false"
+            statementType="CALLABLE">
+        <![CDATA[
+        call safeApply (
+            #{borrowerId, mode=IN},
+            #{docId, mode=IN},
+            #{borrowNum, mode=IN},
+            #{applyResult, mode=IN},
+            #{comm, mode=IN},
+            #{expirationDate, mode=IN},
+            #{isApplied, mode=OUT, jdbcType=INTEGER}
+            );]]>
+
+    </select>
+
+    <select id="handle" parameterType="java.util.Map" resultType="Object" useCache="false"
+            statementType="CALLABLE">
+        <![CDATA[
+        call ApproveBorrow(
+            #{isApproved, mode=IN},
+            #{approverId, mode=IN},
+            #{docBorrowApplyId, mode=IN},
+            #{approveInfo, mode=IN},
+            #{applyResult, mode=OUT, jdbcType=INTEGER}
+            );
+
+        ]]>
+    </select>
+
+
+</mapper>

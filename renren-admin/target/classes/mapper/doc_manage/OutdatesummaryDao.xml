@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.OutdatesummaryDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.OutdatesummaryEntity" id="outdatesummaryMap">
+        <result property="summaryname" column="SummaryName"/>
+        <result property="totalSize" column="total_size"/>
+        <result property="percent" column="percent"/>
+        <result property="totalUnitsSold" column="total_units_sold"/>
+    </resultMap>
+
+    <select id="queryList"  parameterType="Map" resultType="io.renren.modules.doc_manage.entity.OutdatesummaryEntity" statementType="CALLABLE" >
+
+        <![CDATA[
+        call OutDateSummary(
+            #{userId, mode=IN, jdbcType=INTEGER});
+        ]]>
+    </select>
+    <select id="queryCommonList"  parameterType="Map" resultType="io.renren.modules.doc_manage.entity.OutdatesummaryEntity" statementType="CALLABLE" >
+
+        <![CDATA[
+        call CommSummary(
+            #{querypara, mode=IN, jdbcType=VARCHAR},
+            #{userId, mode=IN, jdbcType=INTEGER});
+        ]]>
+    </select>
+
+</mapper>

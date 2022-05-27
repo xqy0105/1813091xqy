@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>档案借阅申请</title>
+    <#include "/header.html">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${request.contextPath}/statics/css/main.css">
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui/layui.js"></script>
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui-date/layui.js"></script>
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui-date/css/layui.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+        .labeli{
+            padding-top:8px;
+        }
+    </style>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <!--            <div class="form-group col-sm-2">-->
+            <!--&lt;!&ndash;                <input type="text" class="form-control" v-model="q.borrowerName" @keyup.enter="query" placeholder="借阅用户名">&ndash;&gt;-->
+
+
+
+            <!--            </div> -->
+
+            <div class="form-group col-sm-4">
+                <div class="col-sm-4 control-label labeli">审批结果</div>
+                <div class="col-sm-6">
+                    <select class="form-control" v-model="q.applyResult" placeholder="审批结果" value-key="approveresult" >
+                        <option v-for="approveresult in approveresultList"  v-bind:value="approveresult.value" >
+                            {{ approveresult.text }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="form-group col-sm-4">
+                <div class="col-sm-4 control-label labeli">请选择逾期提醒类型</div>
+                <div class="col-sm-6">
+                    <el-select filterable clearable allow-create placeholder="请选择逾期提醒类型" class="my-el-select " v-model="q.overtimetype" value="" >
+                    <el-option v-show=true label="所有" value="0"></el-option>
+                    <el-option v-for="ottype in ottypelist"  v-bind:label="ottype.remark"  v-bind:value="ottype.paramKey">
+                        {{ ottype.remark }}
+                    </el-option>
+                    </el-select>
+                </div>
+            </div>
+
+            <a class="btn btn-default" @click="query">查询</a>
+            <div class="form-group col-sm-4" style="visibility: hidden">
+                <div class="col-sm-4 control-label labeli">逾期情况</div>
+                <div class="col-sm-6">
+                    <select class="form-control" v-model="q.overtime" placeholder="逾期情况" value-key="overtime" >
+                        <option v-for="overtime in overtimeList"  v-bind:value="overtime.value" >
+                            {{ overtime.text }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <!--        <div class="grid-btn">-->
+        <!--			<#if shiro.hasPermission("doc_manage:docborrowapply:save")>-->
+        <!--            <a class="btn btn-success" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>-->
+        <!--			</#if>-->
+        <!--			<#if shiro.hasPermission("doc_manage:docborrowapply:update")>-->
+        <!--            <a class="btn btn-info" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>-->
+        <!--			</#if>-->
+        <!--			<#if shiro.hasPermission("doc_manage:docborrowapply:delete")>-->
+        <!--            <a class="btn btn-danger" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>-->
+        <!--			</#if>-->
+        <!--            <a class="btn btn-primary" @click="reload"><i class="fa fa-refresh-o"></i>&nbsp;刷新</a>-->
+        <!--        </div>-->
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/docborrowlist.js?_${.now?long}"></script>
+</body>
+</html>

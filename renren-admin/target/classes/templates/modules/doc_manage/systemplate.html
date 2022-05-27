@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <title>模板表</title>
+    <#include "/header.html">
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <#if shiro.hasPermission("doc_manage:systemplate:save")>
+            <a class="btn btn-success" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+        </#if>
+        <#if shiro.hasPermission("doc_manage:systemplate:update")>
+            <a class="btn btn-info" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+        </#if>
+        <#if shiro.hasPermission("doc_manage:systemplate:export")>
+            <a class="btn btn-primary" @click="export"><i class="fa fa-trash-o"></i>&nbsp;导出</a>
+        </#if>
+        <#if shiro.hasPermission("doc_manage:systemplate:delete")>
+            <a class="btn btn-danger" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+        </#if>
+</div>
+<table id="jqGrid"></table>
+<div id="jqGridPager"></div>
+</div>
+
+<div v-show="!showList" class="panel panel-default">
+    <div class="panel-heading">{{title}}</div>
+    <form class="form-horizontal">
+        <div class="form-group">
+            <div class="col-sm-2 control-label">模板名称</div>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" v-model="sysTemplate.name" placeholder="模板名称"/>
+            </div>
+        </div>
+        <!--<div class="form-group">
+            <div class="col-sm-2 control-label">查询类型</div>
+            <div class="col-sm-10">
+                <select class="form-control" v-model="sysTemplate.queryType" required="required" rplaceholder="选择查询类型" value-key="docStyle" >
+                    <option v-for="data in queryTypeList"  v-bind:value="data.value" >
+                        {{ data.text }}
+                    </option>
+                </select>
+            </div>
+        </div>-->
+        <div class="form-group">
+            <div class="col-sm-2 control-label required">所属部门</div>
+            <div class="col-sm-10">
+                <select class="form-control" v-model="sysTemplate.ownDeptId" placeholder="选择部门" property="ownDeptId" @change="onSelectedDept()">
+                    <option v-for="dept in deptList"  v-bind:value="dept.deptId" >
+                        {{ dept.name }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 control-label required">档案大类</div>
+            <div class="col-sm-10">
+                <select class="form-control" v-model="sysTemplate.categoryId" placeholder="选择档案大类" property="catalog" @change="onSelectedCatalog()">
+                    <option v-for="catalog in catalogList"  v-bind:value="catalog.catalogId" >
+                        {{ catalog.catalogName }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 control-label required">档案类型</div>
+            <div class="col-sm-10">
+                <select class="form-control" v-model="sysTemplate.docTypeId" placeholder="选择档案类型" property="doctype">
+                    <option v-for="doctype in doctypeList"  v-bind:value="doctype.docTypeId" >
+                        {{ doctype.docTypeName }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div  class="form-group">
+            <div class="col-sm-2 control-label required">交出人</div>
+            <div class="col-sm-10">
+                <select class="form-control" v-model="sysTemplate.handleUserId" placeholder="选择用户" property="createUserId" >
+                    <option v-for="user in userList"  v-bind:value="user.userId" >
+                        {{ user.username }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 control-label required">档案形式</div>
+            <div class="col-sm-10">
+                <select class="form-control" v-model="sysTemplate.docStyle" required="required" rplaceholder="选择档案形式" value-key="docStyle" >
+                    <option v-for="docStyle in docStyleList"  v-bind:value="docStyle.value" >
+                        {{ docStyle.text }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 control-label required">密级/标签</div>
+            <div class="col-sm-10">
+                <select class="form-control" v-model="sysTemplate.secretDegree" placeholder="选择密级/标签" value-key="secretDegree" >
+                    <option v-for="secretDegree in secretDegreeList"  v-bind:value="secretDegree.value" >
+                        {{ secretDegree.text }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <!--<div class="form-group">
+                    <div class="col-sm-2 control-label">所属部门</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" style="cursor:pointer;" v-model="sysTemplate.deptName" @click="deptTree" readonly="readonly" placeholder="所属部门"/>
+                    </div>
+                </div>-->
+        <div class="form-group">
+            <div class="col-sm-2 control-label">查询内容</div>
+            <div class="col-sm-10">
+                <!--<input type="text" class="form-control" v-model="sysTemplate.queryType" placeholder="查询类型 1 借阅 2 录入 3 交钱 4 下载"/>-->
+                <select class="form-control" v-model="sysTemplate.queryContent" required="required" rplaceholder="选择查询内容" value-key="docStyle" >
+                    <option v-for="data in queryContentList"  v-bind:value="data.value" >
+                        {{ data.text }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 control-label">用户权限</div>
+            <div class="col-sm-10">
+                <!--<input type="text" class="form-control" v-model="sysTemplate.userIdentity" placeholder="用户身份 0：用户   1：管理员"/>-->
+                <select class="form-control" v-model="sysTemplate.userIdentity" required="required" rplaceholder="选择用户身份" value-key="docStyle" >
+                    <option v-for="data in userIdentityList"  v-bind:value="data.roleId" >
+                        {{ data.roleName }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 control-label">统计周期</div>
+            <div class="col-sm-10">
+                <!--<input type="text" class="form-control" v-model="sysTemplate.stateCycle" placeholder="统计周期  1 日 2 周 3 月 4 年"/>-->
+                <select class="form-control" v-model="sysTemplate.stateCycle" required="required" rplaceholder="选择统计周期" value-key="docStyle" >
+                    <option v-for="data in stateCycleList"  v-bind:value="data.value" >
+                        {{ data.text }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 control-label">图表类型</div>
+            <div class="col-sm-10">
+                <!--<input type="text" class="form-control" v-model="sysTemplate.chartType" placeholder="图表类型 1 饼状图 2 折线图 "/>-->
+                <select class="form-control" v-model="sysTemplate.chartType" required="required" rplaceholder="选择图表类型" value-key="docStyle" >
+                    <option v-for="data in chartTypeList"  v-bind:value="data.value" >
+                        {{ data.text }}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 control-label"></div>
+            <input type="button" class="btn btn-primary" id="btnSaveOrUpdate" data-loading-text="保存中..." @click="saveOrUpdate" value="确定"/>
+            &nbsp;&nbsp;<input type="button" class="btn btn-default" @click="reload" value="返回"/>
+        </div>
+    </form>
+</div>
+</div>
+
+<!-- 选择部门 -->
+<div id="deptLayer" style="display: none;padding:10px;">
+    <ul id="deptTree" class="ztree"></ul>
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/systemplate.js?_${.now?long}"></script>
+</body>
+</html>

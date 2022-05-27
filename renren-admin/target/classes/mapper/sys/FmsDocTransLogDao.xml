@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.sys.dao.FmsDocTransLogDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.sys.entity.FmsDocTransLogEntity" id="fmsDocTransLogMap">
+        <result property="docId" column="doc_id"/>
+        <result property="fromUserId" column="from_user_id"/>
+        <result property="toUserId" column="to_user_id"/>
+        <result property="state" column="state"/>
+       <!-- <result property="transTime" column="trans_time"/>-->
+        <result property="comm" column="comm"/>
+        <result property="docName" column="doc_name"/>
+        <result property="fromUserName" column="from_user_name"/>
+        <result property="toUserName" column="to_user_name"/>
+    </resultMap>
+
+    <select id="transLogList" parameterType="Map" resultType="io.renren.modules.sys.entity.FmsDocTransLogEntity">
+        select transLog.*, from_user.username as from_user_name, to_user.username as to_user_name, doc.doc_name as doc_name
+        from fms_doc_trans_log as transLog
+                 LEFT JOIN fms_document as doc on transLog.doc_id = doc.doc_id
+                 LEFT JOIN sys_user as from_user on transLog.from_user_id = from_user.user_id
+                 LEFT JOIN sys_user as to_user on transLog.to_user_id = to_user.user_id
+        where doc.del_flag = 0
+        <if test="page.params.userId != -1">
+            and  to_user.user_id = #{page.params.userId} or from_user.user_id = #{page.params.userId}
+        </if>
+        <if test="page.params.fromUserName != null and page.params.fromUserName != '' ">
+            and from_user.username = #{page.params.fromUserName}
+        </if>
+        <if test="page.params.toUserName != null and page.params.toUserName != '' ">
+            and to_user.username = #{page.params.toUserName}
+        </if>
+        <if test="page.params.docName != null and page.params.docName != '' ">
+            and doc.doc_name = #{page.params.docName}
+        </if>
+
+    </select>
+
+</mapper>

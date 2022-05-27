@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <title>模板表</title>
+    <#include "/header.html">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/element-ui/css/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <div class="form-group col-sm-4">
+
+                <el-date-picker
+                        v-model="datetimepicker"
+                        type="daterange"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        value-format="yyyy-MM-dd"
+                        align="right">
+                </el-date-picker>
+            </div>
+            <div class="form-group col-sm-2">
+                <el-select v-model="q.templateId" placeholder="选择模板">
+                    <el-option
+                            v-for="item in templateList"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id">
+                    </el-option>
+                </el-select>
+            </div>
+            <a class="btn" @click="create">生成</a>
+        </div>
+        <div id="echartDiv">
+        </div>
+    </div>
+
+</div>
+<script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+<script src="${request.contextPath}/statics/js/modules/doc_manage/customReport.js?_${.now?long}"></script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.DocModifyApplyDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.DocModifyApplyEntity" id="docModifyApplyMap">
+        <result property="docModifyApplyId" column="doc_modify_apply_id"/>
+        <result property="docId" column="doc_id"/>
+        <result property="docName" column="doc_name"/>
+        <result property="approverId" column="approver_id"/>
+        <result property="approverName" column="approver_name"/>
+        <result property="ownUserId" column="own_user_id"/>
+        <result property="ownUserName" column="own_user_name"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="applyTime" column="apply_time"/>
+        <result property="approveTime" column="approve_time"/>
+        <result property="approveStatus" column="approve_status"/>
+        <result property="approveInfo" column="approve_info"/>
+        <result property="comm" column="comm"/>
+    </resultMap>
+   <select id="docModifyApplyList" parameterType="Map" resultType="io.renren.modules.doc_manage.entity.DocModifyApplyEntity">
+       select dma.*, approve_user.username as approver_name, own_user.username as own_user_name, fms_document.doc_name as doc_name
+       from
+       fms_doc_modify_apply as dma
+       left join sys_user as approve_user on dma.approver_id = approve_user.user_id
+       left join sys_user as own_user on dma.own_user_id = own_user.user_id
+       left join fms_document on fms_document.doc_id = dma.doc_id
+       where fms_document.del_flag='0'
+       <if test="page.params.ownUserName!=null and page.params.ownUserName!=''">
+           and  own_user.username=#{page.params.ownUserName}
+       </if>
+       <if test="page.params.approveStatus!=null and page.params.approveStatus!=''"  >
+           and approve_status=#{page.params.approveStatus}
+       </if>
+       <if test="page.params.userId!=null and page.params.userId!=''" >
+           and dma.create_user_id=#{page.params.userId}
+       </if>
+       order by dma.apply_time desc,dma.doc_modify_apply_id desc
+   </select>
+
+    <select id="handle" parameterType="java.util.Map" resultType="Object" useCache="false"
+            statementType="CALLABLE">
+        <![CDATA[
+        call ApproveModify(
+            #{isApproved, mode=IN},
+            #{approverId, mode=IN},
+            #{docModifyApplyId, mode=IN},
+            #{approveInfo, mode=IN},
+            #{approveStatus, mode=OUT, jdbcType=INTEGER}
+            );
+
+        ]]>
+    </select>
+    <select id="docApplyList" parameterType="java.util.Map" resultType="io.renren.modules.doc_manage.entity.DocModifyApplyEntity" useCache="false"
+    >
+        select * from fms_doc_modify_apply where doc_modify_apply_id in(select max(doc_modify_apply_id)
+        from fms_doc_modify_apply where own_user_id=${userId} and doc_id=${docId})
+
+    </select>
+
+</mapper>

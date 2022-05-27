@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.VDocumentDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.VDocumentEntity" id="vDocumentMap">
+        <result property="docId" column="doc_id"/>
+        <result property="contractA" column="contract_a"/>
+        <result property="catalogName" column="catalog_name"/>
+        <result property="docTypeName" column="doc_type_name"/>
+        <result property="beginDate" column="begin_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="docName" column="doc_name"/>
+        <result property="docCurrCount" column="doc_curr_count"/>
+        <result property="docNum" column="doc_num"/>
+        <result property="docPages" column="doc_pages"/>
+        <result property="docStyle" column="doc_style"/>
+        <result property="docTypeId" column="doc_type_id"/>
+        <result property="isAmount" column="is_amount"/>
+        <result property="amount" column="amount"/>
+        <result property="secretDegree" column="secret_degree"/>
+        <result property="storagPeriod" column="storag_period"/>
+        <result property="ownDeptName" column="own_dept_name"/>
+        <result property="viewPri" column="view_pri"/>
+        <result property="archiveMode" column="archive_mode"/>
+        <result property="storePlace" column="store_place"/>
+        <result property="createUsername" column="create_username"/>
+        <result property="tranStatus" column="tran_status"/>
+        <result property="contractB" column="contract_b"/>
+        <result property="contractC" column="contract_c"/>
+        <result property="contractD" column="contract_d"/>
+        <result property="contractE" column="contract_e"/>
+        <result property="labels" column="labels"/>
+        <result property="status" column="status"/>
+    </resultMap>
+    <select id="selectDocInfoPage" parameterType="Map" resultMap="vDocumentMap">
+        select * from v_fms_document t
+        where
+        del_flag='0'
+        <if test="page.params.valid!=null">
+            <!--查询有效状态的档案-->
+            <if test="page.params.valid=='true'">
+                and status=0 and tran_status=0
+            </if>
+            <!--查询管理的档案-->
+            <if test="page.params.valid=='admin'">
+                and tran_status=0
+            </if>
+        </if>
+        <if test="page.params.deptId!=null">
+            and own_dept_id=#{page.params.deptId}
+        </if>
+        <if test="page.params.deptList!=null">
+            and own_dept_id in
+            <foreach collection="page.params.deptList" item="deptId" index="index"
+                     open="(" close=")" separator=",">
+                #{deptId}
+            </foreach>
+        </if>
+        <if test="page.params.userId!=null">
+            and own_user_id=#{page.params.deptId}
+        </if>
+        <if test="page.params.userIdList!=null">
+            and own_user_id in
+            <foreach collection="page.params.userIdList" item="userId" index="index"
+                     open="(" close=")" separator=",">
+                #{deptId}
+            </foreach>
+        </if>
+
+        <if test="page.params.beginDatefrom!=null and page.params.beginDatefrom!='' ">
+            <![CDATA[
+            and begin_date is not null and begin_date>=#{page.params.beginDatefrom}
+                       ]]>
+        </if>
+        <if test="page.params.beginDateto!=null and page.params.beginDateto!='' ">
+            <![CDATA[
+            and begin_date is not null and begin_date<=#{page.params.beginDateto} ]]>
+        </if>
+        <if test="page.params.endDatefrom!=null and page.params.endDatefrom!=''" >
+            <![CDATA[
+            and end_date is not null and end_date>=#{page.params.endDatefrom} ]]>
+        </if>
+        <if test="page.params.page.params.endDateto!=null and page.params.endDateto!=''">
+            <![CDATA[
+            and end_date is not null and end_date<=#{page.params.endDateto} ]]>
+        </if>
+        <if test="page.params.conditionList!=null ">
+            and (
+            <foreach collection="page.params.conditionList" item="condi" index="index"
+                     open="(" close=")" separator=" and ">
+                <choose>
+                    <when test="condi!=null and condi!=''">
+                        info like concat('%',#{condi},'%')
+                    </when>
+                    <otherwise>
+                        1=1
+                    </otherwise>
+
+                </choose>
+
+            </foreach>
+            )
+        </if>
+        <if test="page.params.amountfrom!=null ">
+            <![CDATA[
+            and is_amount=1 and amount>= #{page.params.amountfrom}*10000]]>
+        </if>
+        <if test="page.params.amountto!=null ">
+            <![CDATA[
+            and is_amount=1 and amount<= #{page.params.amountto}*10000]]>
+        </if>
+        <if test="page.params.docTypeName !=null and  page.params.docTypeName!='' ">
+            and doc_type_name like concat("%",#{page.params.docTypeName},"%")
+        </if>
+        <if test="page.params.catalogName !=null and  page.params.catalogName!='' ">
+            and catalog_name like concat("%",#{page.params.catalogName},"%")
+        </if>
+
+        <if test="page.params.docName !=null and  page.params.docName!='' ">
+            and doc_name like concat("%",#{page.params.docName},"%")
+        </if>
+
+    </select>
+
+</mapper>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VIEW</title>
+    <#include "/header.html">
+    <!-- 引入 layui.css -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${request.contextPath}/statics/css/main.css">
+    <!-- 引入 layui.js -->
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui/layui.js"></script>
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui-date/layui.js"></script>
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui-date/css/layui.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+    <style>
+        .form-control{
+            height:40px;
+        }
+
+    </style>
+    <script>
+        $(function () {
+            $("#cond-search-icon").click(function () {
+                // document.getElementById("cond-search").style.height='100px';
+                $("#cond-search").toggle("30000");
+                if($(this).val()==="展开")
+                    $(this).val("收起");
+                else $(this).val("展开");
+                // console.log(vm.q);
+                vm.q.catalogName=null;
+                vm.q.docTypeName=null;
+                vm.q.docName=null;
+
+            });
+        });
+    </script>
+
+    <STYLE>
+        #cond-search
+        {
+            min-height: 40px;
+        }
+        .doublecol{
+            width:95%;
+        }
+        .leftdiv{
+            float: left;
+            width:39%;
+        }
+        .rightdiv{
+            display: inline-block;
+            width:39%;
+        }
+        hr{
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+        .my-el-select {
+            width: 320px;
+        /* selecte 框的高度设置，默认是 40px*/
+        .el-input__inner{
+            height: 30px;
+        }
+        /* 下面设置右侧按钮居中 */
+        .el-input__suffix {
+            top: 5px;
+        }
+        .el-input__icon {
+            line-height: inherit;
+        }
+        .el-input__suffix-inner {
+            display: inline-block;
+        }
+        }
+    </STYLE>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <div class="form-row">
+                <div class="form-group col-sm-2">
+                    <input type="text" class="form-control" v-model="q.info" @keyup.enter="query" placeholder="查询条件">
+                </div>
+                <div class="col col-sm-2">
+                    <el-select filterable clearable allow-create placeholder="请选择逾期提醒类型" class="my-el-select " v-model="q.overtimetype" value="" >
+                        <el-option v-show=true label="所有" value="0"></el-option>
+                        <el-option v-for="ottype in ottypelist"  v-bind:label="ottype.remark"  v-bind:value="ottype.paramValue">
+                            {{ ottype.remark }}
+                        </el-option>
+                    </el-select>
+                </div>
+
+                <div class="form-group col-sm-2">
+                    <!-- 注意：这一层元素并不是必须的 -->
+                    <div class="layui-inline">
+                        <input type="text" class="layui-input-date" id="endDatefrom" v-model="q.endDatefrom" placeholder="终止日期起">
+                        <input type="text" class="layui-input-date" id="endDateto" v-model="q.endDateto" placeholder="终止日期止">
+                    </div>
+                </div>
+
+
+                <a class="btn btn-info" @click="exporttoexcel">导出</a>
+                <a class="btn btn-primary" @click="exporttoexceldetail"><i class="fa fa-trash-o"></i>导出明细</a>
+                <a class="btn btn-primary" @click="reload"><i class="fa fa-refresh-o"></i>刷新</a>
+                <a class="btn btn-success" @click="reload">查询</a>
+                <input type="button" value="展开" id="cond-search-icon" class="btn btn-info"/></input>
+
+            </div>
+            <div class="layui-inline" id="cond-search" style="margin-top: 2px;width: 100%;display: none;" hidden="true">
+                <div class="form-group col-sm-2">
+                    <!-- 注意：这一层元素并不是必须的 -->
+                    <div class="layui-inline">
+                        <input type="text" class="layui-input-date" id="beginDatefrom" v-model="q.beginDatefrom" placeholder="起始日期起">
+                        <input type="text" class="layui-input-date" id="beginDateto" v-model="q.beginDateto" placeholder="起始日期止">
+                    </div>
+                </div>
+                <div class="col col-sm-2 ">
+                    <el-select  filterable clearable allow-create default-first-option  class="my-el-select " @change="selectcatalog" v-model="q.catalogName" placeholder="档案大类"   >
+                        <!--                        <option v-show=true label="所有" value="0"></option>-->
+                        <el-option v-show=true label="请选择输入档案大类" value=null></el-option>
+                        <el-option  class="" v-for="catalogName in catalogList"  v-bind:value="catalogName" >
+                            {{ catalogName }}
+                        </el-option>
+                    </el-select>
+                    <!--                    <input type="text" class="form-control" v-model="q.catalogName" clearable="true" @keyup.enter="query" placeholder="档案大类">-->
+                    <!--&lt;!&ndash;                    <i class="el-icon-close clear_x" v-if="searchpro == '' ? false : true" @click="cleardata"></i>&ndash;&gt;-->
+                    <!--                    <i class="glyphicon glyphicon-search"></i>-->
+                    <!--                    <div class="search_menu">-->
+                    <!--                    <ul class="input_list">-->
+                    <!--                        <li v-for="catalogName in catalogList" :key="catalogName" @click="selectcatalog(catalogName)">-->
+                    <!--                            {{catalogName}}-->
+                    <!--                        </li>-->
+                    <!--                    </ul>-->
+                    <!--                </div>-->
+                </div>
+
+                <div class="col col-sm-2">
+
+                    <el-select  filterable clearable allow-create  class="my-el-select " v-model="q.docTypeName" placeholder="档案类型" property="doctypeList"   >
+                        <el-option v-show=true label="请选择输入档案类型" value=""></el-option>
+                        <el-option  class="" v-for="doctypename in doctypeList"  v-bind:value="doctypename" >
+                            {{ doctypename }}
+                        </el-option>
+                    </el-select>
+                    <!--                    <input type="text" class="form-control" v-model="q.docTypeName" @keyup.enter="query" placeholder="档案类型">-->
+                    <!--                    <i class="glyphicon glyphicon-search"></i>-->
+                    <!--                    <div class="search_menu">-->
+                    <!--                        <ul class="input_list">-->
+                    <!--                            <li v-for="doctypename in doctypeList" :key="doctypename" >-->
+                    <!--                                {{doctypename}}-->
+                    <!--                            </li>-->
+                    <!--                        </ul>-->
+                    <!--                    </div>-->
+                </div>
+
+                <!--                <div class="col col-sm-2">-->
+                <!--                    <input type="text" class="form-control" v-model="q.docName" @keyup.enter="query" placeholder="档案名称">-->
+                <!--                </div>-->
+                <div class="col col-sm-2">
+                    <input type="text" class="form-control" style="width:45%;display:inline;" v-model="q.amountfrom" @keyup.enter="query" placeholder="档案金额大于等于（万）">
+                    <input type="text" class="form-control" style="width:45%;display:inline;" v-model="q.amountto" @keyup.enter="query" placeholder="档案金额小于等于（万）">
+                </div>
+                <!--            <div class="form-group col-sm-1">-->
+                <!--                <input type="text" class="form-control" v-model="q.beginDatefrom" @keyup.enter="query" placeholder="起始日期">-->
+                <!--            </div>-->
+
+                <!--            <div class="form-group col-sm-1">-->
+                <!--                <input type="text" class="form-control" v-model="q.beginDateto" @keyup.enter="query" placeholder="起始日期">-->
+                <!--            </div>-->
+                <!--            <div class="form-group col-sm-1">-->
+                <!--                <input type="text" class="form-control" v-model="q.endDatefrom" @keyup.enter="query" placeholder="结束日期">-->
+                <!--            </div>-->
+                <!--            <div class="form-group col-sm-1">-->
+                <!--                <input type="text" class="form-control" v-model="q.endDateto" @keyup.enter="query" placeholder="起始日期">-->
+                <!--            </div>-->
+
+            </div>
+        </div>
+
+
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="showDetail" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal doublecol" >
+            <div  class="rightdiv" >
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">所属部门</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.ownDeptName"  readonly="showDetail" placeholder="所属部门"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同甲方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractA"  readonly="showDetail" placeholder="合同甲方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案大类名称</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.catalogName" readonly="showDetail"   placeholder="档案大类名称"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案类型名称</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docTypeName"  readonly="showDetail" placeholder="档案类型名称"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">起始日期</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.beginDate"  readonly="showDetail" placeholder="起始日期"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">终止日期</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.endDate"  readonly="showDetail" placeholder="终止日期"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案名称</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docName"  readonly="showDetail" placeholder="档案名称"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">交出人</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.createUsername"  readonly="showDetail" placeholder="档案交出人"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案数量</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docCount"  readonly="showDetail" placeholder="档案数量"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案在库数量</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docCurrCount"  readonly="showDetail" placeholder="档案在库数量"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案编号/文号</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docNum"  readonly="showDetail" placeholder="档案编号/文号"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案页数</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docPages"  readonly="showDetail" placeholder="档案页数"/>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="rightdiv">
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案形式</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docStyle"  readonly="showDetail" placeholder="档案形式"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">是否有金额</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.amountInfo"  readonly="showDetail" placeholder="是否有金额"/>
+                    </div>
+                </div>
+                <!--            <div class="form-group">-->
+                <!--                <div class="col-sm-2 control-label">金额</div>-->
+                <!--                <div class="col-sm-10">-->
+                <!--                    <input type="text" class="form-control" v-model="vDocInfoDetail.amount"  readonly="showDetail" placeholder="金额"/>-->
+                <!--                </div>-->
+                <!--            </div>-->
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">浏览权限类型</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control"  v-model="vDocInfoDetail.viewPri"  readonly="showDetail" placeholder="浏览权限类型"/>
+                    </div>
+                </div>
+                <div v-show="deptpriShow" class="form-group">
+                    <div class="col-sm-2 control-label">浏览权限部门</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control"  v-model="vDocInfoDetail.deptsString"  readonly="showDetail" placeholder="浏览权限部门"/>
+                    </div>
+                </div>
+                <div v-show="userpriShow" class="form-group">
+                    <div class="col-sm-2 control-label">浏览权限用户</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control"  v-model="vDocInfoDetail.usersString"  readonly="showDetail" placeholder="浏览权限用户"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">密级/标签</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control"  v-model="vDocInfoDetail.secretDegree"  readonly="showDetail" placeholder="密级/标签"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">定期归档模式</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control"  v-model="vDocInfoDetail.archiveMode"  readonly="showDetail" placeholder="定期归档模式"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案保管期限</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.storagPeriod"  readonly="showDetail" placeholder="档案保管期限"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">存放地址</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.storePlace"  readonly="showDetail" placeholder="存放地址"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同乙方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractB"  readonly="showDetail" placeholder="合同乙方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同丙方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractC"  readonly="showDetail" placeholder="合同丙方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同丁方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractD"  readonly="showDetail" placeholder="合同丁方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同戊方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractE"  readonly="showDetail" placeholder="合同戊方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">查询标签</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.labels"  readonly="showDetail" placeholder="查询标签定义，分号分隔"/>
+                    </div>
+                </div>
+            </div>
+            <div v-show="canView" style="display: inline-block;margin: 2% auto">
+                <!--            <input @change="handleFileChange" ref="inputer"/>-->
+                <div class="dropbox p-3" style="margin-bottom: 2%">
+                    <fieldset class="layui-elem-field">
+                        <legend>文件列表</legend>
+                        <div class="layui-field-box">
+                            <div v-for="(singleFile,index) in fileList">
+                                <li>
+                                    <a @click="clickToDownload(singleFile)" style="cursor: pointer">{{singleFile.fileName}}</a>
+                                    <hr class="layui-border-red" v-if="index%2==0">
+                                    <hr class="layui-border-green" v-else>
+                                    <!--                    <a href="D:/test/a041700e678a4b9dafbb009b6cc3486c.exe" target="_blank" download>{{singleFile.fileName}}</a>-->
+                                </li>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                </div>
+
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <!--                <input type="button" class="btn btn-primary" id="btnSaveOrUpdate" data-loading-text="保存中..." @click="saveOrUpdate" value="确定"/>-->
+                &nbsp;&nbsp;<input type="button" class="btn btn-default" @click="reload" value="返回"/>
+            </div>
+        </form>
+    </div>
+    <div v-show="showBorrow" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal">
+            <div class="form-group">
+                <div class="col-sm-2 control-label">申请借阅档案名称</div>
+                <div class="col-sm-10 control-label">{{vDocInfoDetail.docName}}
+                    <!--                    <input type="text" class="form-control" v-model="vDocInfoDetail.docName" placeholder="档案名称"/>-->
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label">申请借阅数量</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model="docBorrowApply.borrownum" placeholder="申请借阅数量"/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">截止归还日期</div>
+                <div class="col-sm-10">
+                    <!--                    <input type="text" class="form-control" v-model="docBorrowApply.expirationDate" placeholder="截止归还日期"/>-->
+                    <input type="text" class="layui-input-date " style="width: 90%" id="expirationDate" v-model="docBorrowApply.expirationDate" placeholder="截止归还日期">
+                </div>
+            </div>
+
+            <div class="form-group">
+
+                <div class="col-sm-2 control-label"></div>
+                <input type="button" class="btn btn-primary" id="btnBorrowApply" data-loading-text="保存中..." @click="borrowApply" value="确定"/>
+                &nbsp;&nbsp;<input type="button" class="btn btn-default" @click="reload" value="取消"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/vdocinfodetail.js?_${.now?long}"></script>
+</body>
+</html>

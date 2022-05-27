@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <title>模板表</title>
+    <#include "/header.html">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/element-ui/css/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <div class="form-group col-sm-4">
+
+                <el-date-picker
+                        v-model="value3"
+                        type="year"
+                        value-format="yyyy"
+                        placeholder="选择年">
+                </el-date-picker>
+            </div>
+            <a class="btn" @click="create">生成</a>
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+        <!-- （1）近五年档案总数变化 -->
+        <div id="echartDiv" style="margin-left: 150px">
+
+        </div>
+        <div id="echartDiv1" style="margin-left: 150px">
+
+        </div>
+        <div id="echartDiv2" style="margin-left: 150px">
+
+        </div>
+        <div id="echartDiv3" style="margin-left: 150px">
+
+        </div>
+        <div id="echartDiv4" style="margin-left: 150px">
+
+        </div>
+        <div id="echartDiv5" style="margin-left: 150px">
+
+        </div>
+        <div id="echartDiv6" style="margin-left: 150px">
+
+        </div>
+    </div>
+
+</div>
+<script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+<script src="${request.contextPath}/statics/js/modules/doc_manage/yearReport.js?_${.now?long}"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.sys.dao.FmsDocbrowserPriDeptDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.sys.entity.FmsDocbrowserPriDeptEntity" id="fmsDocbrowserPriDeptMap">
+        <result property="deptId" column="dept_id"/>
+        <result property="docId" column="doc_id"/>
+        <result property="privilegeType" column="privilege_type"/>
+    </resultMap>
+    <select id="queryList" parameterType="Map" resultType="io.renren.modules.sys.entity.FmsDocbrowserPriDeptEntity" >
+        select *
+        from fms_docbrowser_pri_dept
+        where 1=1
+        <if test="docId!=null">
+            and doc_id=#{docId}
+        </if>
+    </select>
+    <delete id="delete" >
+        delete from fms_docbrowser_pri_dept where doc_id=#{docId}
+    </delete>
+
+</mapper>

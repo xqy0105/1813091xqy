@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VIEW</title>
+    <#include "/header.html">
+    <!-- 引入 layui.css -->
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${request.contextPath}/statics/css/main.css">
+    <!-- 引入 layui.js -->
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui/layui.js"></script>
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui-date/layui.js"></script>
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui-date/css/layui.css">
+    <script>
+        $(function () {
+            $("#cond-search-icon").click(function () {
+                // document.getElementById("cond-search").style.height='100px';
+                $("#cond-search").toggle("30000");
+                if($(this).val()==="展开")
+                    $(this).val("收起");
+                else $(this).val("展开");
+                // console.log(vm.q);
+                vm.q.catalogName=null;
+                vm.q.docTypeName=null;
+                vm.q.docName=null;
+
+            });
+        });
+    </script>
+
+    <STYLE>
+        #cond-search
+        {
+            min-height: 40px;
+        }
+        .doublecol{
+            width:95%;
+        }
+        .leftdiv{
+            float: left;
+            width:39%;
+        }
+        .rightdiv{
+            display: inline-block;
+            width:39%;
+        }
+        hr{
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+    </STYLE>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <div class="form-row">
+                <div class="col col-sm-2">
+                    <select class="form-control" v-model="q.overtimetype" placeholder="逾期提醒" property="param_value">
+                        <option v-for="ottype in ottypelist"  v-bind:value="ottype.param_zvalue" >
+                            {{ ottype.remark }}
+                        </option>
+                    </select>
+                </div>
+                <a class="btn btn-primary" @click="reloadovertime"><i class="fa fa-refresh-o"></i>刷新</a>
+                <a class="btn btn-success" @click="reloadovertime">查询</a>
+                <input type="button" value="展开" id="cond-search-icon" class="btn btn-info"/></input>
+
+            </div>
+
+        </div>
+
+
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="showDetail" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal doublecol" >
+            <div  class="rightdiv" >
+
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同甲方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractA"  readonly="showDetail" placeholder="合同甲方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案大类名称</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.catalogName" readonly="showDetail"   placeholder="档案大类名称"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案类型名称</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docTypeName"  readonly="showDetail" placeholder="档案类型名称"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">起始日期</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.beginDate"  readonly="showDetail" placeholder="起始日期"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">终止日期</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.endDate"  readonly="showDetail" placeholder="终止日期"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案名称</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docName"  readonly="showDetail" placeholder="档案名称"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案在库数量</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docCurrCount"  readonly="showDetail" placeholder="档案在库数量"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案编号/文号</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docNum"  readonly="showDetail" placeholder="档案编号/文号"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案页数</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docPages"  readonly="showDetail" placeholder="档案页数"/>
+                    </div>
+                </div>
+
+            </div>
+            <div class="rightdiv">
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案形式</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.docStyle"  readonly="showDetail" placeholder="档案形式"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">是否有金额</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.amountInfo"  readonly="showDetail" placeholder="是否有金额"/>
+                    </div>
+                </div>
+                <!--            <div class="form-group">-->
+                <!--                <div class="col-sm-2 control-label">金额</div>-->
+                <!--                <div class="col-sm-10">-->
+                <!--                    <input type="text" class="form-control" v-model="vDocInfoDetail.amount"  readonly="showDetail" placeholder="金额"/>-->
+                <!--                </div>-->
+                <!--            </div>-->
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">密级/标签</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control"  v-model="vDocInfoDetail.secretDegree"  readonly="showDetail" placeholder="密级/标签"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">档案保管期限</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.storagPeriod"  readonly="showDetail" placeholder="档案保管期限"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同乙方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractB"  readonly="showDetail" placeholder="合同乙方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同丙方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractC"  readonly="showDetail" placeholder="合同丙方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同丁方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractD"  readonly="showDetail" placeholder="合同丁方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">合同戊方</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.contractE"  readonly="showDetail" placeholder="合同戊方"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-2 control-label">查询标签</div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="vDocInfoDetail.labels"  readonly="showDetail" placeholder="查询标签定义，分号分隔"/>
+                    </div>
+                </div>
+            </div>
+            <div v-show="canView" style="display: inline-block;margin: 2% auto">
+                <!--            <input @change="handleFileChange" ref="inputer"/>-->
+                <div class="dropbox p-3" style="margin-bottom: 2%">
+                    <fieldset class="layui-elem-field">
+                        <legend>文件列表</legend>
+                        <div class="layui-field-box">
+                            <div v-for="(singleFile,index) in fileList">
+                                <li>
+                                    <a @click="clickToDownload(singleFile)" style="cursor: pointer">{{singleFile.fileName}}</a>
+                                    <hr class="layui-border-red" v-if="index%2==0">
+                                    <hr class="layui-border-green" v-else>
+                                    <!--                    <a href="D:/test/a041700e678a4b9dafbb009b6cc3486c.exe" target="_blank" download>{{singleFile.fileName}}</a>-->
+                                </li>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                </div>
+
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <!--                <input type="button" class="btn btn-primary" id="btnSaveOrUpdate" data-loading-text="保存中..." @click="saveOrUpdate" value="确定"/>-->
+                &nbsp;&nbsp;<input type="button" class="btn btn-default" @click="reload" value="返回"/>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/vdocinfodetail.js?_${.now?long}"></script>
+</body>
+</html>

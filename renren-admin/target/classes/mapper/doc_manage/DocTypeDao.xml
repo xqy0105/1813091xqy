@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.DocTypeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.DocTypeEntity" id="docTypeMap">
+        <result property="docTypeId" column="doc_type_id"/>
+        <result property="catalogId" column="catalog_id"/>
+        <result property="docTypeName" column="doc_type_name"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="catalogName" column="catalog_name"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="deptName" column="dept_name"/>
+    </resultMap>
+
+    <select id="delByDocTypeId"  parameterType="Map" resultType="Object" statementType="CALLABLE" >
+
+        <![CDATA[
+        call delByDocTypeId(
+            #{docTypeId, mode=IN, jdbcType=INTEGER},
+            #{userId, mode=IN, jdbcType=INTEGER},
+            #{isDone, mode=OUT,jdbcType=INTEGER});
+        ]]>
+    </select>
+    <select id="selectCountByDocTypeID" parameterType="Long" resultType="int">
+        select count(*) from fms_document where del_flag='0' and doc_type_id=#{docTypeId}
+    </select>
+    <select id="selectDocTypeList"  parameterType="Map"  resultType="io.renren.modules.doc_manage.entity.DocTypeEntity">
+        <!--hassub为档案大类下档案类型的数量-->
+        select  *
+        from view_doctype
+        where
+        del_flag='0'
+        <if test="page.params.deptId!=null">
+            and dept_id=#{page.params.deptId}
+        </if>
+        <if test="page.params.deptList!=null">
+            and dept_id in
+            <foreach collection="page.params.deptList" item="deptId" index="index"
+                     open="(" close=")" separator=",">
+                #{deptId}
+            </foreach>
+        </if>
+    </select>
+    <select id="queryList"  parameterType="Map"  resultType="io.renren.modules.doc_manage.entity.DocTypeEntity">
+
+        select  *
+        from view_doctype
+        where
+        del_flag='0'
+        <if test="deptId!=null">
+            and dept_id=#{deptId}
+        </if>
+        <if test="catalogId!=null">
+            and catalog_id=#{catalogId}
+        </if>
+        <if test="docTypeName!=null">
+            and doc_type_name=#{docTypeName}
+        </if>
+    </select>
+
+    <select id="queryListByCatalogId"  parameterType="Map"  resultType="io.renren.modules.doc_manage.entity.DocTypeEntity">
+        select  *
+        from fms_doc_type
+        where catalog_id= #{catalogId}
+
+    </select>
+
+    <select id="selectDocType"  parameterType="Map"  resultType="io.renren.modules.doc_manage.entity.DocTypeEntity">
+        <!--hassub为档案大类下档案类型的数量-->
+        select  *
+        from view_doctype t
+        where
+        del_flag='0'
+        <if test="docTypeId">
+            and t.doc_type_id=#{docTypeId}
+        </if>
+
+    </select>
+<!--    /*-->
+<!--    选择档案类型名称列表-->
+<!--    */-->
+    <select id="selectDocTypeNameList"  parameterType="Map"  resultType="String">
+        <!--hassub为档案大类下档案类型的数量-->
+        select  distinct doc_type_name
+        from view_doctype t
+        where
+        del_flag='0'
+        <if test="deptId!=null">
+            and dept_id=#{deptId}
+        </if>
+        <if test="docTypeName">
+            and t.doc_type_name like concat('%', #{docTypeName}, '%')
+        </if>
+        <if test="catalogName">
+            and t.catalog_Name like concat('%', #{catalogName}, '%')
+        </if>
+        order by doc_type_name
+    </select>
+</mapper>

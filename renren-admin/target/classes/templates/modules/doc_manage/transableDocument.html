@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>档案</title>
+		<#include "/header.html">
+    <script>
+        $(function () {
+            $("#cond-search-icon").click(function () {
+                // document.getElementById("cond-search").style.height='100px';
+                $("#cond-search").toggle("30000");
+                console.log($(this).val());
+                if($(this).val()==="展开")
+                    $(this).val("收起");
+                else $(this).val("展开");
+                // console.log(vm.q);
+                vm.q.beginDate=null;
+                vm.document.endDate=null;
+                vm.q.contractA=null;
+
+            });
+        });
+    </script>
+    <STYLE>
+        #cond-search
+        {
+
+            min-height: 34px;
+        }
+
+    </STYLE>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn" id="querydiv">
+            <form>
+                <div class="form-row">
+                    <div class="col col-sm-2">
+                        <input type="text" class="form-control" v-model="q.catalogName" @keyup.enter="query" placeholder="档案大类">
+                    </div>
+                    <div class="col col-sm-2">
+                        <input type="text" class="form-control" v-model="q.docTypeName" @keyup.enter="query" placeholder="档案类型">
+                    </div>
+                    <div class="col col-sm-2">
+                        <input type="text" class="form-control" v-model="q.docName" @keyup.enter="query" placeholder="档案名称">
+                    </div>
+                    <input type="button" value="展开" id="cond-search-icon" class="btn btn-info" style="float: left" />
+                    <a class="btn btn-success" @click="query">查询</a>
+                    <a class="btn btn-success" @click="clickTransOut">交接(出)</a>
+                </div>
+
+
+                <div class="form-row" id="cond-search" style="margin-top: 2px;" hidden>
+                    <!--                <div class="form-row">-->
+                    <div class="col col-sm-2">
+                        <input type="text" class="form-control" v-model="q.beginDate" @keyup.enter="query" placeholder="起始日期">
+                    </div>
+                    <div class="col col-sm-2">
+                        <input type="text" class="form-control" v-model="document.endDate" placeholder="终止日期"/>
+                    </div>
+                    <div class="col col-sm-2">
+                        <input type="text" class="form-control" v-model="q.contractA" @keyup.enter="query" placeholder="合同甲方">
+                    </div>
+                </div>
+
+            </form>
+
+
+        </div>
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading">选择接收档案的用户</div>
+
+        <form class="form-horizontal" style="float: left;width: 60%">
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">接收者部门</div>
+                <div class="col-sm-10">
+                    <select class="form-control" v-model="selectedDeptId" @change="onSelectedDept($event, selectedDeptId)">
+                        <option v-for="(item, index) in depts" :value="item.deptId" >
+                            {{item.deptId}} {{item.name}}
+                        </option>
+                    </select>
+
+                </div>
+            </div>
+
+            <!--<div class="form-group">
+                <div class="col-sm-2 control-label">接收部门档案大类</div>
+                <div class="col-sm-10">
+                    <select class="form-control" v-model="selectedCatalogId" @change="onSelectedCatalog($event, selectedCatalogId)">
+                        <option v-for="(item, index) in catalogList" :value="item.catalogId">
+                            {{item.catalogId}} {{item.catalogName}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">接收部门档案类型</div>
+                <div class="col-sm-10">
+                    <select class="form-control" v-model="selectedDoctypeId" >
+                        <option v-for="(item, index) in doctypeList" :value="item.docTypeId">
+                            {{item.docTypeId}} {{item.docTypeName}}
+                        </option>
+                    </select>
+                </div>
+            </div>-->
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label">接收者信息</div>
+                <div class="col-sm-10">
+                    <select class="form-control" v-model="selectedColleagues" >
+                        <option v-for="(item, index) in colleagues" :value="item.userId">
+                            {{item.userId}} {{item.username}}
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <input  type="button" class="btn btn-primary"
+                        id="btnTransOut" data-loading-text="保存中..."
+                        @click="transOut" value="确认"/>
+                <input type="button" class="btn btn-default" @click="reload" value="返回"/>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/transableDocument.js?_${.now?long}"></script>
+</body>
+</html>

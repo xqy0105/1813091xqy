@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.sys.dao.FmsDocumentFileDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.sys.entity.FmsDocumentFileEntity" id="fmsDocumentFileMap">
+        <result property="docfileId" column="docfile_id"/>
+        <result property="docId" column="doc_id"/>
+        <result property="fileLocation" column="file_location"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="browseTimes" column="browse_times"/>
+        <result property="comm" column="comm"/>
+        <result property="upload_time" column="upload_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+    <select id="queryList" parameterType="Map" resultType="io.renren.modules.sys.entity.FmsDocumentFileEntity" >
+        select *
+        from fms_document_file
+        where del_flag='0'
+        <if test="docId!=null">
+            and doc_id=#{docId}
+        </if>
+    </select>
+    <update id="delete" parameterType="Map" >
+        UPDATE fms_document_file
+        SET del_flag=1,
+        comm=CONCAT(IFNULL(comm,""),"delete by ",CONCAT(#{userId},";"),NOW()) WHERE docfile_id=#{docfileId};
+    </update>
+    <select id="canView" parameterType="Map" resultType="int" >
+        select sum(viewnum) as num
+        from (select count(*) as viewnum
+              from fms_document doc
+              where ((doc.own_dept_id =
+                      (select dept_id from sys_user where user_id = #{userId})
+                  or doc.create_user_id = #{userId}
+                  )
+                  or doc.view_pri='所有人可见'
+                  )
+                and doc.doc_id = #{docId}
+              union
+              select count(*) as viewnum
+              from fms_docbrowser_pri_dept deptp
+              where deptp.dept_id = (select dept_id from sys_user where user_id = #{userId})
+                and deptp.doc_id = #{docId}
+              union
+              select count(*) as viewnum
+              from fms_docbrowser_pri_user userp
+              where userp.user_id = #{userId}
+                and doc_id = #{docId}
+             ) a
+
+    </select>
+    <select id="queryById" resultType="io.renren.modules.sys.dao.FmsDocumentFileDao"></select>
+
+
+</mapper>

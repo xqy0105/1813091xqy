@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>档案借阅申请</title>
+    <#include "/header.html">
+
+    <!-- 引入 layui.css -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui/css/layui.css">
+    <link rel="stylesheet" href="${request.contextPath}/statics/css/main.css">
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui/layui.js"></script>
+    <script type="text/javascript" src="${request.contextPath}/statics/plugins/layui-date/layui.js"></script>
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/layui-date/css/layui.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <div class="form-group col-sm-2">
+                <input type="text" class="form-control" v-model="q.borrowerName" @keyup.enter="query" placeholder="借阅用户名">
+
+
+
+            </div>
+            <div class="form-group col-sm-2">
+
+            <select class="form-control" v-model="q.applyResult" placeholder="审批结果" value-key="approveresult" >
+                <option v-for="approveresult in approveresultList"  v-bind:value="approveresult.value" >
+                    {{ approveresult.text }}
+                </option>
+            </select>
+
+        </div>
+            <div class="col col-sm-2">
+                <el-select filterable clearable allow-create placeholder="请选择逾期提醒类型" class="my-el-select " v-model="q.overtimetype" value="" >
+                    <el-option v-show=true label="所有" value="0"></el-option>
+                    <el-option v-for="ottype in ottypelist"  v-bind:label="ottype.remark"  v-bind:value="ottype.paramKey">
+                        {{ ottype.remark }}
+                    </el-option>
+                </el-select>
+            </div>
+            <a class="btn btn-success" @click="query">查询</a>
+            <a class="btn btn-primary" @click="reload"><i class="fa fa-refresh-o"></i>&nbsp;刷新</a>
+
+        </div>
+        <!--        <div class="grid-btn">-->
+        <!--			<#if shiro.hasPermission("doc_manage:docborrowapply:save")>-->
+        <!--            <a class="btn btn-success" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>-->
+        <!--			</#if>-->
+        <!--			<#if shiro.hasPermission("doc_manage:docborrowapply:update")>-->
+        <!--            <a class="btn btn-info" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>-->
+        <!--			</#if>-->
+        <!--			<#if shiro.hasPermission("doc_manage:docborrowapply:delete")>-->
+        <!--            <a class="btn btn-danger" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>-->
+        <!--			</#if>-->
+        <!--            <a class="btn btn-primary" @click="reload"><i class="fa fa-refresh-o"></i>&nbsp;刷新</a>-->
+        <!--        </div>-->
+        <table id="jqGrid"></table>
+        <div id="jqGridPager"></div>
+    </div>
+
+    <div v-show="!showList" class="panel panel-default">
+        <div class="panel-heading">{{title}}</div>
+        <form class="form-horizontal">
+            <div class="form-group">
+                <div class="col-sm-2 control-label">审批意见</div>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" v-model="approveMsg.approveInfo" placeholder="审批意见"/>
+                </div>
+            </div>
+
+            <!--                    <div class="form-group">-->
+            <!--                        <div class="col-sm-2 control-label">备注</div>-->
+            <!--                        <div class="col-sm-10">-->
+            <!--                            <input type="text" class="form-control" v-model="approveMsg.comm" placeholder="备注"/>-->
+            <!--                        </div>-->
+            <!--                    </div>-->
+
+            <div class="form-group">
+                <div class="col-sm-2 control-label"></div>
+                <input  type="button" class="btn btn-primary"
+                        id="btnApproveOrRejectBorrow" data-loading-text="保存中..."
+                        @click="handleApproveOrReject" value="确认"/>
+                <input type="button" class="btn btn-default" @click="reload" value="返回"/>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/docborrowapply.js?_${.now?long}"></script>
+</body>
+</html>

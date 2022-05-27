@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>档案类型</title>
+    <#include "/header.html">
+</head>
+<body>
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <#if shiro.hasPermission("doc_manage:doctype:save")>
+            <a class="btn btn-success" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+        </#if>
+
+<!--        <#if shiro.hasPermission("doc_manage:doctype:update")>-->
+<!--        <a class="btn btn-info" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>-->
+<!--    </#if>-->
+<!--    <#if shiro.hasPermission("doc_manage:doctype:delete")>-->
+<!--    <a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>-->
+<!--    -->
+<!--</#if>-->
+    <a class="btn btn-primary" @click="reload"><i class="fa fa-refresh-o"></i>&nbsp;刷新</a>
+        <a class="btn btn-info" @click="exporttoexcel"><i class="fa fa-trash-o"></i>&nbsp;导出</a>
+</div>
+<table id="jqGrid"></table>
+<div id="jqGridPager"></div>
+</div>
+
+<div v-show="!showList" class="panel panel-default">
+    <div class="panel-heading">{{title}}</div>
+    <form class="form-horizontal">
+        <div class="form-group">
+            <div class="col-sm-2 control-label">所在部门 </div>
+                <div class="col-sm-10">
+                    <select class="form-control" v-model="selected" placeholder="选择部门" property="cataDeptId" @change="onSelectedDept($event, selected)">
+                        <option v-for="dept in deptList"  v-bind:value="dept.deptId" >
+                            {{ dept.name }}
+                        </option>
+                    </select>
+                </div>
+
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 control-label">档案大类</div>
+                <div class="col-sm-10">
+                    <select class="form-control" v-model="cataselected" placeholder="选择部门" property="catalogId">
+                        <option v-for="catalog in catalogList"  v-bind:value="catalog.catalogId" >
+                            {{ catalog.catalogName }}
+                        </option>
+                    </select>
+                </div>
+
+        </div>
+        <!--						<div class="form-group">-->
+        <!--                        <div class="col-sm-2 control-label">catalog</div>-->
+        <!--                        <div class="col-sm-10">-->
+        <!--                            <input type="text" class="form-control" v-model="docType.catalogId" placeholder="catalog"/>-->
+        <!--                        </div>-->
+        <!--                    </div>-->
+        <div class="form-group">
+            <div class="col-sm-2 control-label">档案类型名称</div>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" v-model="docType.docTypeName" placeholder="档案类型名称"/>
+            </div>
+        </div>
+<!--        <div class="form-group">-->
+<!--            <div class="col-sm-2 control-label"></div>-->
+<!--            <div class="col-sm-10">-->
+<!--                <input type="text" class="form-control" v-model="docType.delFlag" placeholder=""/>-->
+<!--            </div>-->
+<!--        </div>-->
+        <div class="form-group">
+            <div class="col-sm-2 control-label"></div>
+            <input type="button" class="btn btn-primary" id="btnSaveOrUpdate" data-loading-text="保存中..." @click="saveOrUpdate" value="确定"/>
+            &nbsp;&nbsp;<input type="button" class="btn btn-default" @click="reload" value="返回"/>
+        </div>
+    </form>
+</div>
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/doctype.js?_${.now?long}"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.sys.dao.FmsDocBorrowDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.sys.entity.FmsDocBorrowEntity" id="fmsDocBorrowMap">
+        <result property="approverId" column="approver_id"/>
+        <result property="approverName" column="approver_name"/>
+        <result property="borrowerId" column="borrower_id"/>
+        <result property="borrowerName" column="borrower_name"/>
+        <result property="docId" column="doc_id"/>
+        <result property="docName" column="doc_name"/>
+        <result property="applytime" column="applytime"/>
+        <result property="borrowtime" column="borrowtime"/>
+        <result property="expirationDate" column="expiration_date"/>
+        <result property="returnTime" column="return_time"/>
+        <result property="borrownum" column="borrownum"/>
+        <result property="comm" column="comm"/>
+    </resultMap>
+    <select id="docBorrowList" parameterType="Map" resultType="io.renren.modules.sys.entity.FmsDocBorrowEntity">
+        select d_b.*, approve_user.username as approver_name, borrow_user.username as borrower_name, fms_document.doc_name as doc_name
+        from
+            fms_doc_borrow as d_b
+                left join sys_user as approve_user on d_b.approver_id = approve_user.user_id
+                left join sys_user as borrow_user on d_b.borrower_id = borrow_user.user_id
+                left join fms_document on fms_document.doc_id = d_b.doc_id
+
+        where fms_document.del_flag='0'
+        <if test="page.params.borrowerName != null and page.params.borrowerName!='' ">
+            and borrow_user.username = #{page.params.borrowerName}
+        </if>
+        <if test="page.params.returnResult != null and page.params.returnResult != '' ">
+            and d_b.return_result = #{page.params.returnResult}
+        </if>
+        order by d_b.expiration_date asc
+    </select>
+
+    <select id="safeSave" parameterType="Map"  resultType="Object" useCache="false"
+            statementType="CALLABLE">
+        <![CDATA[
+        call safeBorrow(
+            #{approverId, mode=IN, jdbcType=INTEGER},
+            #{borrowerId, mode=IN, jdbcType=INTEGER},
+            #{docId, mode=IN, jdbcType=INTEGER},
+            #{applytime, mode=IN, jdbcType=TIMESTAMP},
+            #{borrowtime, mode=IN, jdbcType=TIMESTAMP},
+            #{expirationDate, mode=IN, jdbcType=DATE},
+            #{returnTime, mode=IN, jdbcType=TIMESTAMP},
+            #{borrownum, mode=IN, jdbcType=INTEGER},
+            #{comm, mode=IN, jdbcType=VARCHAR},
+            #{isDone, mode=OUT, jdbcType=INTEGER});
+        ]]>
+    </select>
+
+    <select id="returnById" parameterType="Map"  resultType="Object" useCache="false"
+            statementType="CALLABLE">
+        <![CDATA[
+        call returnBorrow(
+            #{docBorrowId, mode=IN}
+            );
+        ]]>
+    </select>
+
+    <!--查询是否为系统管理员-->
+    <select id="isAdmin" resultType="int" parameterType="long">
+        SELECT count(*) FROM sys_user_role ur,sys_role role,sys_user USER
+        WHERE ur.role_id=role.role_id AND user.user_id=ur.user_id
+          and role_name='系统管理员'
+          and user.user_id=#{userId}
+    </select>
+
+
+
+</mapper>

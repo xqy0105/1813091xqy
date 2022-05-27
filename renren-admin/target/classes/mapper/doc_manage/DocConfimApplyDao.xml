@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.DocConfimApplyDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.DocConfimApplyEntity" id="docConfimApplyMap">
+        <result property="docConfirmApplyId" column="doc_confirm_apply_id"/>
+        <result property="approverId" column="approver_id"/>
+        <result property="approverName" column="approver_name"/>
+        <result property="docId" column="doc_id"/>
+        <result property="docName" column="doc_name"/>
+        <result property="ownUserId" column="own_user_id"/>
+        <result property="ownUserName" column="own_user_name"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="applyTime" column="apply_time"/>
+        <result property="approveTime" column="approve_time"/>
+        <result property="approveStatus" column="approve_status"/>
+        <result property="approveInfo" column="approve_info"/>
+        <result property="comm" column="comm"/>
+    </resultMap>
+    <select id="docConfirmApplyList" parameterType="Map" resultType="io.renren.modules.doc_manage.entity.DocConfimApplyEntity">
+        select dca.*, approve_user.username as approver_name, own_user.username as own_user_name, fms_document.doc_name as doc_name
+        from
+        fms_doc_confim_apply as dca
+        left join sys_user as approve_user on dca.approver_id = approve_user.user_id
+        left join sys_user as own_user on dca.own_user_id = own_user.user_id
+        left join fms_document on fms_document.doc_id = dca.doc_id
+        where fms_document.del_flag='0'
+        <if test="page.params.ownUserName!=null and page.params.ownUserName!=''">
+            and  own_user.username=#{page.params.ownUserName}
+        </if>
+        <if test="page.params.approveStatus!=null and page.params.approveStatus!=''"  >
+            and approve_status=#{page.params.approveStatus}
+        </if>
+        <if test="page.params.userId!=null and page.params.userId!=''" >
+            and dca.create_user_id=#{page.params.userId}
+        </if>
+        order by dca.apply_time desc,dca.doc_confirm_apply_id desc
+    </select>
+
+    <select id="handle" parameterType="java.util.Map" resultType="Object" useCache="false"
+            statementType="CALLABLE">
+        <![CDATA[
+        call ApproveConfirm(
+            #{isApproved, mode=IN},
+            #{approverId, mode=IN},
+            #{docConfirmApplyId, mode=IN},
+            #{approveInfo, mode=IN},
+            #{approveStatus, mode=OUT, jdbcType=INTEGER}
+            );
+
+        ]]>
+    </select>
+   <select id="docApplyList" parameterType="java.util.Map" resultType="io.renren.modules.doc_manage.entity.DocConfimApplyEntity" useCache="false"
+           >
+       select * from fms_doc_confim_apply where doc_confirm_apply_id in(select max(doc_confirm_apply_id)
+       from fms_doc_confim_apply where own_user_id=${userId} and doc_id=${docId})
+
+   </select>
+</mapper>

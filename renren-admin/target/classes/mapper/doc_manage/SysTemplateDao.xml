@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.SysTemplateDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.SysTemplateEntity" id="sysTemplateMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="userIdentity" column="user_identity"/>
+        <result property="stateCycle" column="state_cycle"/>
+        <result property="chartType" column="chart_type"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    <select id="getCustomReport" resultType="java.lang.Integer">
+        SELECT
+            count(ba.doc_borrow_apply_id) num
+        FROM
+            fms_doc_borrow_apply ba
+                left join sys_user su on ba.borrower_id = su.user_id
+                left join sys_user_role sur on su.user_id = sur.user_id
+        WHERE
+            ba.apply_result = 1
+          and sur.role_id = #{roleId}
+          and DATE_FORMAT(ba.applytime,'%Y-%m-%d') &gt;= #{startTime}
+          and DATE_FORMAT(ba.applytime,'%Y-%m-%d') &lt;= #{endTime}
+    </select>
+    <select id="yearCreate" resultType="java.util.Map">
+        SELECT
+            count(ba.doc_borrow_apply_id) num
+
+        FROM
+            fms_doc_borrow_apply ba
+        WHERE
+            ba.apply_result = 1
+          and DATE_FORMAT(ba.applytime,'%Y-%m') = #{month}
+
+        union all
+
+        SELECT
+            count(so.id) num
+
+        FROM
+            sys_oss so
+        WHERE
+
+            DATE_FORMAT(so.create_date,'%Y-%m') = #{month}
+
+    </select>
+    <select id="queryYearPage" resultType="java.util.Map">
+        SELECT
+            sd.name,
+            (
+                SELECT
+                    count(fd.doc_id) num
+                FROM
+                    fms_document fd
+                WHERE
+                    fd.del_flag = 0 and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num1,
+            (
+                SELECT
+                    count(t1.doc_borrow_apply_id) num
+                FROM
+                    fms_doc_borrow_apply t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                WHERE fd.del_flag = 0 and t1.apply_result = 1
+                  and DATE_FORMAT(t1.applytime,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num2,
+            (
+                SELECT
+                    count(t1.doc_borrow_id) num
+                FROM
+                    fms_doc_borrow t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                WHERE fd.del_flag = 0 and t1.return_result = 1
+                  and DATE_FORMAT(t1.applytime,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num3,
+            (
+                SELECT
+                    count(fd.doc_id) num
+                FROM
+                    fms_document fd
+                WHERE fd.tran_status = 0 and fd.status = 0
+                  and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num4,
+            (
+                SELECT
+                    count(fd.doc_id) num
+                FROM
+                    fms_document fd
+
+                        LEFT JOIN fms_doc_trans_log AS l ON fd.doc_id = l.doc_id
+                WHERE fd.del_flag = 0 and l.state = '已交出'
+                  and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num5,
+            (
+                SELECT
+                    count(t1.doc_confirm_apply_id) num
+                FROM
+                    fms_doc_confim_apply as t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+                WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+                  and DATE_FORMAT(t1.apply_time,'%Y') =  #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num6,
+            (
+                SELECT
+                    count(t1.doc_modify_apply_id) num
+                FROM
+                    fms_doc_modify_apply as t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+                WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+                  and DATE_FORMAT(t1.apply_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num7
+        FROM
+            sys_dept sd
+        order by sd.dept_id
+
+            limit #{startSize},#{limit}
+    </select>
+    <select id="queryYearPageCount" resultType="java.lang.Integer">
+        select count(a.dept_id) from (
+                                         SELECT
+                                             sd.name,
+                                             sd.dept_id,
+                                             (
+                                                 SELECT
+                                                     count(fd.doc_id) num
+                                                 FROM
+                                                     fms_document fd
+                                                 WHERE
+                                                     fd.del_flag = 0 and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                                                   AND fd.own_dept_id = sd.dept_id
+                                             ) num1,
+                                             (
+                                                 SELECT
+                                                     count(t1.doc_borrow_apply_id) num
+                                                 FROM
+                                                     fms_doc_borrow_apply t1
+                                                         left join fms_document fd on t1.doc_id = fd.doc_id
+                                                 WHERE fd.del_flag = 0 and t1.apply_result = 1
+                                                   and DATE_FORMAT(t1.applytime,'%Y') = #{year}
+                                                   AND fd.own_dept_id = sd.dept_id
+                                             ) num2,
+                                             (
+                                                 SELECT
+                                                     count(t1.doc_borrow_id) num
+                                                 FROM
+                                                     fms_doc_borrow t1
+                                                         left join fms_document fd on t1.doc_id = fd.doc_id
+                                                 WHERE fd.del_flag = 0 and t1.return_result = 1
+                                                   and DATE_FORMAT(t1.applytime,'%Y') = #{year}
+                                                   AND fd.own_dept_id = sd.dept_id
+                                             ) num3,
+                                             (
+                                                 SELECT
+                                                     count(fd.doc_id) num
+                                                 FROM
+                                                     fms_document fd
+                                                 WHERE fd.tran_status = 0 and fd.status = 0
+                                                   and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                                                   AND fd.own_dept_id = sd.dept_id
+                                             ) num4,
+                                             (
+                                                 SELECT
+                                                     count(fd.doc_id) num
+                                                 FROM
+                                                     fms_document fd
+
+                                                         LEFT JOIN fms_doc_trans_log AS l ON fd.doc_id = l.doc_id
+                                                 WHERE fd.del_flag = 0 and l.state = '已交出'
+                                                   and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                                                   AND fd.own_dept_id = sd.dept_id
+                                             ) num5,
+                                             (
+                                                 SELECT
+                                                     count(t1.doc_confirm_apply_id) num
+                                                 FROM
+                                                     fms_doc_confim_apply as t1
+                                                         left join fms_document fd on t1.doc_id = fd.doc_id
+                                                         left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+                                                 WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+                                                   and DATE_FORMAT(t1.apply_time,'%Y') =  #{year}
+                                                   AND fd.own_dept_id = sd.dept_id
+                                             ) num6,
+                                             (
+                                                 SELECT
+                                                     count(t1.doc_modify_apply_id) num
+                                                 FROM
+                                                     fms_doc_modify_apply as t1
+                                                         left join fms_document fd on t1.doc_id = fd.doc_id
+                                                         left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+                                                 WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+                                                   and DATE_FORMAT(t1.apply_time,'%Y') = #{year}
+                                                   AND fd.own_dept_id = sd.dept_id
+                                             ) num7
+                                         FROM
+                                             sys_dept sd
+                                         order by sd.dept_id
+                                     ) a
+
+    </select>
+    <select id="getDocumentNum" resultType="java.lang.Integer">
+        SELECT
+        count(fd.doc_id) num
+        FROM
+        fms_document fd
+        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        <where>
+            and fd.del_flag = 0 and fdt.del_flag = 0
+            <!-- 所属部门 -->
+            <if test="sysTemplateEntity.ownDeptId != null and  sysTemplateEntity.ownDeptId != '-1'">
+                and fd.own_dept_id = #{sysTemplateEntity.ownDeptId}
+            </if>
+            <!-- 档案大类 -->
+            <if test="sysTemplateEntity.categoryId != null and  sysTemplateEntity.categoryId != '-1'">
+                and fdt.catalog_id = #{sysTemplateEntity.categoryId}
+            </if>
+            <!-- 档案类型 -->
+            <if test="sysTemplateEntity.docTypeId != null and  sysTemplateEntity.docTypeId != '-1'">
+                and fd.doc_type_id = #{sysTemplateEntity.docTypeId}
+            </if>
+            <!-- 交出人 -->
+            <if test="sysTemplateEntity.handleUserId != null and  sysTemplateEntity.handleUserId != '-1'">
+                and fd.create_user_id = #{sysTemplateEntity.handleUserId}
+            </if>
+            <!-- 档案形式 -->
+            <if test="sysTemplateEntity.docStyle != null and  sysTemplateEntity.docStyle != '-1'">
+                and fd.doc_style = #{sysTemplateEntity.docStyle}
+            </if>
+            <!-- 密级/标签 -->
+            <if test="sysTemplateEntity.secretDegree != null and  sysTemplateEntity.secretDegree != '-1'">
+                and fd.secret_degree = #{sysTemplateEntity.secretDegree}
+            </if>
+            and DATE_FORMAT(fd.create_time,'%Y-%m-%d') &gt;= #{startTime}
+            and DATE_FORMAT(fd.create_time,'%Y-%m-%d') &lt;= #{endTime}
+        </where>
+    </select>
+    <select id="getBorrowApplyNum" resultType="java.lang.Integer">
+        SELECT
+        count(t1.doc_borrow_apply_id) num
+        FROM
+        fms_doc_borrow_apply t1
+        left join fms_document fd on t1.doc_id = fd.doc_id
+        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        <where>
+            fd.del_flag = 0 and t1.apply_result = 1 and fdt.del_flag = 0
+            <!-- 所属部门 -->
+            <if test="sysTemplateEntity.ownDeptId != null and  sysTemplateEntity.ownDeptId != '-1'">
+                and fd.own_dept_id = #{sysTemplateEntity.ownDeptId}
+            </if>
+            <!-- 档案大类 -->
+            <if test="sysTemplateEntity.categoryId != null and  sysTemplateEntity.categoryId != '-1'">
+                and fdt.catalog_id = #{sysTemplateEntity.categoryId}
+            </if>
+            <!-- 档案类型 -->
+            <if test="sysTemplateEntity.docTypeId != null and  sysTemplateEntity.docTypeId != '-1'">
+                and fd.doc_type_id = #{sysTemplateEntity.docTypeId}
+            </if>
+            <!-- 交出人 -->
+            <if test="sysTemplateEntity.handleUserId != null and  sysTemplateEntity.handleUserId != '-1'">
+                and fd.create_user_id = #{sysTemplateEntity.handleUserId}
+            </if>
+            <!-- 档案形式 -->
+            <if test="sysTemplateEntity.docStyle != null and  sysTemplateEntity.docStyle != '-1'">
+                and fd.doc_style = #{sysTemplateEntity.docStyle}
+            </if>
+            <!-- 密级/标签 -->
+            <if test="sysTemplateEntity.secretDegree != null and  sysTemplateEntity.secretDegree != '-1'">
+                and fd.secret_degree = #{sysTemplateEntity.secretDegree}
+            </if>
+            and DATE_FORMAT(t1.applytime,'%Y-%m-%d') &gt;= #{startTime}
+            and DATE_FORMAT(t1.applytime,'%Y-%m-%d') &lt;= #{endTime}
+        </where>
+    </select>
+    <select id="getBorrowNum" resultType="java.lang.Integer">
+        SELECT
+        count(t1.doc_borrow_id) num
+        FROM
+        fms_doc_borrow t1
+        left join fms_document fd on t1.doc_id = fd.doc_id
+        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        <where>
+            t1.return_result = 1
+            <!-- 所属部门 -->
+            <if test="sysTemplateEntity.ownDeptId != null and  sysTemplateEntity.ownDeptId != '-1'">
+                and fd.own_dept_id = #{sysTemplateEntity.ownDeptId}
+            </if>
+            <!-- 档案大类 -->
+            <if test="sysTemplateEntity.categoryId != null and  sysTemplateEntity.categoryId != '-1'">
+                and fdt.catalog_id = #{sysTemplateEntity.categoryId}
+            </if>
+            <!-- 档案类型 -->
+            <if test="sysTemplateEntity.docTypeId != null and  sysTemplateEntity.docTypeId != '-1'">
+                and fd.doc_type_id = #{sysTemplateEntity.docTypeId}
+            </if>
+            <!-- 交出人 -->
+            <if test="sysTemplateEntity.handleUserId != null and  sysTemplateEntity.handleUserId != '-1'">
+                and fd.create_user_id = #{sysTemplateEntity.handleUserId}
+            </if>
+            <!-- 档案形式 -->
+            <if test="sysTemplateEntity.docStyle != null and  sysTemplateEntity.docStyle != '-1'">
+                and fd.doc_style = #{sysTemplateEntity.docStyle}
+            </if>
+            <!-- 密级/标签 -->
+            <if test="sysTemplateEntity.secretDegree != null and  sysTemplateEntity.secretDegree != '-1'">
+                and fd.secret_degree = #{sysTemplateEntity.secretDegree}
+            </if>
+            and DATE_FORMAT(t1.applytime,'%Y-%m-%d') &gt;= #{startTime}
+            and DATE_FORMAT(t1.applytime,'%Y-%m-%d') &lt;= #{endTime}
+        </where>
+    </select>
+    <select id="getTransableNum" resultType="java.lang.Integer">
+        SELECT
+        count(fd.doc_id) num
+        FROM
+        fms_document fd
+        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        <where>
+            fd.tran_status = 0 and fd.status = 0 and fdt.del_flag = 0
+            <!-- 所属部门 -->
+            <if test="sysTemplateEntity.ownDeptId != null and  sysTemplateEntity.ownDeptId != '-1'">
+                and fd.own_dept_id = #{sysTemplateEntity.ownDeptId}
+            </if>
+            <!-- 档案大类 -->
+            <if test="sysTemplateEntity.categoryId != null and  sysTemplateEntity.categoryId != '-1'">
+                and fdt.catalog_id = #{sysTemplateEntity.categoryId}
+            </if>
+            <!-- 档案类型 -->
+            <if test="sysTemplateEntity.docTypeId != null and  sysTemplateEntity.docTypeId != '-1'">
+                and fd.doc_type_id = #{sysTemplateEntity.docTypeId}
+            </if>
+            <!-- 交出人 -->
+            <if test="sysTemplateEntity.handleUserId != null and  sysTemplateEntity.handleUserId != '-1'">
+                and fd.create_user_id = #{sysTemplateEntity.handleUserId}
+            </if>
+            <!-- 档案形式 -->
+            <if test="sysTemplateEntity.docStyle != null and  sysTemplateEntity.docStyle != '-1'">
+                and fd.doc_style = #{sysTemplateEntity.docStyle}
+            </if>
+            <!-- 密级/标签 -->
+            <if test="sysTemplateEntity.secretDegree != null and  sysTemplateEntity.secretDegree != '-1'">
+                and fd.secret_degree = #{sysTemplateEntity.secretDegree}
+            </if>
+            and DATE_FORMAT(fd.create_time,'%Y-%m-%d') &gt;= #{startTime}
+            and DATE_FORMAT(fd.create_time,'%Y-%m-%d') &lt;= #{endTime}
+        </where>
+    </select>
+    <select id="getTransInNum" resultType="java.lang.Integer">
+        SELECT
+        count(fd.doc_id) num
+        FROM
+        fms_document fd
+        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        LEFT JOIN fms_doc_trans_log AS l ON fd.doc_id = l.doc_id
+        <where>
+            fd.del_flag = 0 and l.state = '已交出' and fdt.del_flag = 0
+            <!-- 所属部门 -->
+            <if test="sysTemplateEntity.ownDeptId != null and  sysTemplateEntity.ownDeptId != '-1'">
+                and fd.own_dept_id = #{sysTemplateEntity.ownDeptId}
+            </if>
+            <!-- 档案大类 -->
+            <if test="sysTemplateEntity.categoryId != null and  sysTemplateEntity.categoryId != '-1'">
+                and fdt.catalog_id = #{sysTemplateEntity.categoryId}
+            </if>
+            <!-- 档案类型 -->
+            <if test="sysTemplateEntity.docTypeId != null and  sysTemplateEntity.docTypeId != '-1'">
+                and fd.doc_type_id = #{sysTemplateEntity.docTypeId}
+            </if>
+            <!-- 交出人 -->
+            <if test="sysTemplateEntity.handleUserId != null and  sysTemplateEntity.handleUserId != '-1'">
+                and fd.create_user_id = #{sysTemplateEntity.handleUserId}
+            </if>
+            <!-- 档案形式 -->
+            <if test="sysTemplateEntity.docStyle != null and  sysTemplateEntity.docStyle != '-1'">
+                and fd.doc_style = #{sysTemplateEntity.docStyle}
+            </if>
+            <!-- 密级/标签 -->
+            <if test="sysTemplateEntity.secretDegree != null and  sysTemplateEntity.secretDegree != '-1'">
+                and fd.secret_degree = #{sysTemplateEntity.secretDegree}
+            </if>
+            and DATE_FORMAT(fd.create_time,'%Y-%m-%d') &gt;= #{startTime}
+            and DATE_FORMAT(fd.create_time,'%Y-%m-%d') &lt;= #{endTime}
+        </where>
+    </select>
+    <select id="getConfimApplyNum" resultType="java.lang.Integer">
+        SELECT
+        count(t1.doc_confirm_apply_id) num
+        FROM
+        fms_doc_confim_apply as t1
+        left join fms_document fd on t1.doc_id = fd.doc_id
+        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        <where>
+            fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+            <!-- 所属部门 -->
+            <if test="sysTemplateEntity.ownDeptId != null and  sysTemplateEntity.ownDeptId != '-1'">
+                and fd.own_dept_id = #{sysTemplateEntity.ownDeptId}
+            </if>
+            <!-- 档案大类 -->
+            <if test="sysTemplateEntity.categoryId != null and  sysTemplateEntity.categoryId != '-1'">
+                and fdt.catalog_id = #{sysTemplateEntity.categoryId}
+            </if>
+            <!-- 档案类型 -->
+            <if test="sysTemplateEntity.docTypeId != null and  sysTemplateEntity.docTypeId != '-1'">
+                and fd.doc_type_id = #{sysTemplateEntity.docTypeId}
+            </if>
+            <!-- 交出人 -->
+            <if test="sysTemplateEntity.handleUserId != null and  sysTemplateEntity.handleUserId != '-1'">
+                and fd.create_user_id = #{sysTemplateEntity.handleUserId}
+            </if>
+            <!-- 档案形式 -->
+            <if test="sysTemplateEntity.docStyle != null and  sysTemplateEntity.docStyle != '-1'">
+                and fd.doc_style = #{sysTemplateEntity.docStyle}
+            </if>
+            <!-- 密级/标签 -->
+            <if test="sysTemplateEntity.secretDegree != null and  sysTemplateEntity.secretDegree != '-1'">
+                and fd.secret_degree = #{sysTemplateEntity.secretDegree}
+            </if>
+            and DATE_FORMAT(t1.apply_time,'%Y-%m-%d') &gt;= #{startTime}
+            and DATE_FORMAT(t1.apply_time,'%Y-%m-%d') &lt;= #{endTime}
+        </where>
+
+    </select>
+    <select id="getModifyApplyNum" resultType="java.lang.Integer">
+        SELECT
+        count(t1.doc_modify_apply_id) num
+        FROM
+        fms_doc_modify_apply as t1
+        left join fms_document fd on t1.doc_id = fd.doc_id
+        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        <where>
+            fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+            <!-- 所属部门 -->
+            <if test="sysTemplateEntity.ownDeptId != null and  sysTemplateEntity.ownDeptId != '-1'">
+                and fd.own_dept_id = #{sysTemplateEntity.ownDeptId}
+            </if>
+            <!-- 档案大类 -->
+            <if test="sysTemplateEntity.categoryId != null and  sysTemplateEntity.categoryId != '-1'">
+                and fdt.catalog_id = #{sysTemplateEntity.categoryId}
+            </if>
+            <!-- 档案类型 -->
+            <if test="sysTemplateEntity.docTypeId != null and  sysTemplateEntity.docTypeId != '-1'">
+                and fd.doc_type_id = #{sysTemplateEntity.docTypeId}
+            </if>
+            <!-- 交出人 -->
+            <if test="sysTemplateEntity.handleUserId != null and  sysTemplateEntity.handleUserId != '-1'">
+                and fd.create_user_id = #{sysTemplateEntity.handleUserId}
+            </if>
+            <!-- 档案形式 -->
+            <if test="sysTemplateEntity.docStyle != null and  sysTemplateEntity.docStyle != '-1'">
+                and fd.doc_style = #{sysTemplateEntity.docStyle}
+            </if>
+            <!-- 密级/标签 -->
+            <if test="sysTemplateEntity.secretDegree != null and  sysTemplateEntity.secretDegree != '-1'">
+                and fd.secret_degree = #{sysTemplateEntity.secretDegree}
+            </if>
+            and DATE_FORMAT(t1.apply_time,'%Y-%m-%d') &gt;= #{startTime}
+            and DATE_FORMAT(t1.apply_time,'%Y-%m-%d') &lt;= #{endTime}
+        </where>
+
+    </select>
+
+    <select id="echartHandler" resultType="java.lang.Integer">
+        SELECT
+        count(fd.doc_id) num
+        FROM
+        fms_document fd
+        <where>
+            and fd.del_flag = 0 and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+        </where>
+    </select>
+    <select id="echartHandler1" resultType="java.util.Map">
+        SELECT
+            sd.name,
+            (
+                SELECT
+                    count(fd.doc_id) num
+                FROM
+                    fms_document fd
+                WHERE
+                    fd.del_flag = 0 and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) value
+        FROM
+            sys_dept sd
+        order by sd.dept_id
+    </select>
+    <select id="getBorrowNumNew" resultType="java.lang.Integer">
+        SELECT
+            count(t1.doc_borrow_id) num
+        FROM
+            fms_doc_borrow t1
+                left join fms_document fd on t1.doc_id = fd.doc_id
+        WHERE fd.del_flag = 0 and t1.return_result = 1
+          and DATE_FORMAT(t1.applytime,'%Y-%m') = #{month}
+    </select>
+    <select id="getBorrowApplyNumNew" resultType="java.lang.Integer">
+        SELECT
+            count(t1.doc_borrow_apply_id) num
+        FROM
+            fms_doc_borrow_apply t1
+                left join fms_document fd on t1.doc_id = fd.doc_id
+        WHERE fd.del_flag = 0 and t1.apply_result = 1
+          and DATE_FORMAT(t1.applytime,'%Y-%m') = #{month}
+    </select>
+    <select id="getTransableNumNew" resultType="java.lang.Integer">
+        SELECT
+            count(fd.doc_id) num
+        FROM
+            fms_document fd
+        WHERE fd.tran_status = 0 and fd.status = 0
+          and DATE_FORMAT(fd.create_time,'%Y-%m') = #{month}
+    </select>
+    <select id="getTransInNumNew" resultType="java.lang.Integer">
+        SELECT
+            count(fd.doc_id) num
+        FROM
+            fms_document fd
+
+                LEFT JOIN fms_doc_trans_log AS l ON fd.doc_id = l.doc_id
+        WHERE fd.del_flag = 0 and l.state = '已交出'
+          and DATE_FORMAT(fd.create_time,'%Y-%m') = #{month}
+    </select>
+    <select id="getConfimApplyNumNew" resultType="java.lang.Integer">
+        SELECT
+            count(t1.doc_confirm_apply_id) num
+        FROM
+            fms_doc_confim_apply as t1
+                left join fms_document fd on t1.doc_id = fd.doc_id
+                left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+          and DATE_FORMAT(t1.apply_time,'%Y-%m') = #{month}
+    </select>
+    <select id="getModifyApplyNumNew" resultType="java.lang.Integer">
+        SELECT
+            count(t1.doc_modify_apply_id) num
+        FROM
+            fms_doc_modify_apply as t1
+                left join fms_document fd on t1.doc_id = fd.doc_id
+                left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+        WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+          and DATE_FORMAT(t1.apply_time,'%Y-%m') = #{month}
+    </select>
+
+    <select id="exportYearList" resultType="java.util.Map">
+        SELECT
+            sd.name as name,
+            (
+                SELECT
+                    count(fd.doc_id) num
+                FROM
+                    fms_document fd
+                WHERE
+                    fd.del_flag = 0 and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num1,
+            (
+                SELECT
+                    count(t1.doc_borrow_apply_id) num
+                FROM
+                    fms_doc_borrow_apply t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                WHERE fd.del_flag = 0 and t1.apply_result = 1
+                  and DATE_FORMAT(t1.applytime,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num2,
+            (
+                SELECT
+                    count(t1.doc_borrow_id) num
+                FROM
+                    fms_doc_borrow t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                WHERE fd.del_flag = 0 and t1.return_result = 1
+                  and DATE_FORMAT(t1.applytime,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num3,
+            (
+                SELECT
+                    count(fd.doc_id) num
+                FROM
+                    fms_document fd
+                WHERE fd.tran_status = 0 and fd.status = 0
+                  and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num4,
+            (
+                SELECT
+                    count(fd.doc_id) num
+                FROM
+                    fms_document fd
+
+                        LEFT JOIN fms_doc_trans_log AS l ON fd.doc_id = l.doc_id
+                WHERE fd.del_flag = 0 and l.state = '已交出'
+                  and DATE_FORMAT(fd.create_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num5,
+            (
+                SELECT
+                    count(t1.doc_confirm_apply_id) num
+                FROM
+                    fms_doc_confim_apply as t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+                WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+                  and DATE_FORMAT(t1.apply_time,'%Y') =  #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num6,
+            (
+                SELECT
+                    count(t1.doc_modify_apply_id) num
+                FROM
+                    fms_doc_modify_apply as t1
+                        left join fms_document fd on t1.doc_id = fd.doc_id
+                        left join fms_doc_type fdt on fd.doc_type_id = fdt.doc_type_id
+                WHERE fd.del_flag = 0 and fdt.del_flag = 0 and t1.approve_status = 1
+                  and DATE_FORMAT(t1.apply_time,'%Y') = #{year}
+                  AND fd.own_dept_id = sd.dept_id
+            ) num7
+        FROM
+            sys_dept sd
+        order by sd.dept_id
+    </select>
+
+</mapper>

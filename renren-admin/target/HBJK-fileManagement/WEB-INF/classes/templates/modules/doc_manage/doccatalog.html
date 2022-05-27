@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>档案大类</title>
+
+    <#include "/header.html">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="${request.contextPath}/statics/plugins/element-ui/css/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
+</head>
+<body>
+<style>
+    .my-el-select {
+        width: 320px;
+    /* selecte 框的高度设置，默认是 40px*/
+    .el-input__inner{
+        height: 30px;
+    }
+    /* 下面设置右侧按钮居中 */
+    .el-input__suffix {
+        top: 5px;
+    }
+    .el-input__icon {
+        line-height: inherit;
+    }
+    .el-input__suffix-inner {
+        display: inline-block;
+    }
+    }
+</style>
+
+<div id="rrapp" v-cloak>
+    <div v-show="showList">
+        <div class="grid-btn">
+            <#if shiro.hasPermission("doc_manage:doccatalog:save")>
+            <a class="btn btn-success" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+        </#if>
+        <#if shiro.hasPermission("doc_manage:doccatalog:batchadd")>
+        <a class="btn btn-info" @click="addbatch"><i class="fa fa-plus"></i>&nbsp;批量新增</a>
+    </#if>
+    <!--        <#if shiro.hasPermission("doc_manage:doccatalog:update")>-->
+    <!--        <a class="btn btn-info" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>-->
+    <!--    </#if>-->
+    <!--    <#if shiro.hasPermission("doc_manage:doccatalog:delete")>-->
+    <!--    <a class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>-->
+    <!--   -->
+    <!--</#if>-->
+    <a class="btn btn-primary" @click="reload"><i class="fa fa-refresh-o"></i>&nbsp;刷新</a>
+</div>
+<table id="jqGrid"></table>
+<div id="jqGridPager"></div>
+</div>
+
+<div v-show="!showList" class="panel panel-default">
+    <div class="panel-heading">{{title}}</div>
+    <form class="form-horizontal">
+        <template>
+
+        </template>       <div class="form-group">
+        <div class="col-sm-2 control-label">所在部门</div>
+        <div  class="col-sm-10">
+            <el-select  id="deptsSelect" v-show="showBatch" class="my-el-select " v-model="deptsString" multiple  placeholder="请选择部门"   >
+                <el-option v-for="depts in deptList"  :key="depts.deptId" :label="depts.name" :value="depts.deptId" >
+
+                </el-option>
+            </el-select>
+            <!--                <input type="text" class="form-control" v-model="docCatalog.deptId" placeholder="dept_id"/>-->
+            <!--                <div style="margin-top: 1%;width: 40%">-->
+            <select v-show="!showBatch"  class="form-control" v-model="selected" placeholder="选择部门" property="cataDeptId">
+                <option v-for="dept in deptList"  v-bind:value="dept.deptId" >
+                    {{ dept.name }}
+                </option>
+            </select>
+
+
+
+
+            <!--                </div>-->
+
+        </div>
+        <!--            <div v-show="showBatch" class="col-sm-10">-->
+        <!--                &lt;!&ndash;                <input type="text" class="form-control" v-model="docCatalog.deptId" placeholder="dept_id"/>&ndash;&gt;-->
+
+        <!--                <div style="margin-top: 1%;width: 40%">-->
+        <!--                   -->
+
+        <!--                </div>-->
+        <!--            </div>-->
+    </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 control-label">档案大类名称</div>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" v-model="docCatalog.catalogName" placeholder="档案大类名称"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 control-label"></div>
+            <input v-show="showBatch" type="button" class="btn btn-primary" id="btnBatchAdd" data-loading-text="保存中..." @click="batchAdd" value="批量增加"/>
+            <input v-show="!showBatch" type="button" class="btn btn-primary" id="btnSaveOrUpdate" data-loading-text="保存中..." @click="saveOrUpdate" value="确定"/>
+            &nbsp;&nbsp;<input type="button" class="btn btn-default" @click="reload" value="返回"/>
+        </div>
+    </form>
+</div>
+</div>
+
+<script src="${request.contextPath}/statics/js/modules/doc_manage/doccatalog.js?_${.now?long}"></script>
+</body>
+</html>

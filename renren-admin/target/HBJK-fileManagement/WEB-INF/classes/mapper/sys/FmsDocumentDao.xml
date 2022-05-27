@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.sys.dao.FmsDocumentDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.sys.entity.FmsDocumentEntity" id="fmsDocumentMap">
+        <result property="docId" column="doc_id"/>
+        <result property="docTypeId" column="doc_type_id"/>
+        <result property="ownDeptId" column="own_dept_id"/>
+        <result property="ownUserId" column="own_user_id"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="docStyle" column="doc_style"/>
+        <result property="storePlace" column="store_place"/>
+        <result property="viewPri" column="view_pri"/>
+        <result property="docName" column="doc_name"/>
+        <result property="docNum" column="doc_num"/>
+        <result property="isAmount" column="is_amount"/>
+        <result property="amount" column="amount"/>
+        <result property="archiveMode" column="archive_mode"/>
+        <result property="docCount" column="doc_count"/>
+        <result property="docPages" column="doc_pages"/>
+        <result property="secretDegree" column="secret_degree"/>
+        <result property="beginDate" column="begin_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="storagPeriod" column="storag_period"/>
+        <result property="contractA" column="contract_a"/>
+        <result property="contractB" column="contract_b"/>
+        <result property="contractC" column="contract_c"/>
+        <result property="contractD" column="contract_d"/>
+        <result property="contractE" column="contract_e"/>
+        <result property="labels" column="labels"/>
+        <result property="docCurrCount" column="doc_curr_count"/>
+    </resultMap>
+
+    <select id="selectFmsDocumentList" parameterType="Map" resultType="io.renren.modules.sys.entity.FmsDocumentEntity" >
+        select *
+        from fms_document
+        <if test="page.params.ownDeptId!=null">
+            and dept.dept_id=#{page.params.ownDeptId}
+        </if>
+        <if test="page.params.deptList!=null">
+            and dept.dept_id in
+            <foreach collection="page.params.deptList" item="ownDeptId" index="index"
+                     open="(" close=")" separator=",">
+                #{ownDeptId}
+            </foreach>
+        </if>
+    </select>
+    <select id="queryList" parameterType="Map" resultType="io.renren.modules.sys.entity.FmsDocumentFileEntity" >
+        select *
+        from fms_document_file
+        where del_flag='0'
+        <if test="docId!=null">
+            and doc_id=#{docId}
+        </if>
+    </select>
+    <update id="delete" parameterType="Map" >
+        UPDATE fms_document
+        SET del_flag=1,
+        comm=CONCAT(IFNULL(comm,""),"delete by ",CONCAT(#{userId},";"),NOW()) WHERE doc_id=#{docId} and status='-1';
+    </update>
+</mapper>

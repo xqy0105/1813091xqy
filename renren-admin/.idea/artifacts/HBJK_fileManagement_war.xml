@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="HBJK-fileManagement:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>HBJK-fileManagement</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="HBJK-fileManagement.war">
+      <element id="artifact" artifact-name="HBJK-fileManagement:war exploded" />
+    </root>
+  </artifact>
+</component>

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="io.renren.modules.doc_manage.dao.DocumentDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="io.renren.modules.doc_manage.entity.DocumentEntity" id="documentMap">
+        <result property="docId" column="doc_id"/>
+        <result property="docTypeId" column="doc_type_id"/>
+        <result property="ownDeptId" column="own_dept_id"/>
+        <result property="ownUserId" column="own_user_id"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="docStyle" column="doc_style"/>
+        <result property="storePlace" column="store_place"/>
+        <result property="viewPri" column="view_pri"/>
+        <result property="docName" column="doc_name"/>
+        <result property="docNum" column="doc_num"/>
+        <result property="isAmount" column="is_amount"/>
+        <result property="amount" column="amount"/>
+        <result property="archiveMode" column="archive_mode"/>
+        <result property="docCount" column="doc_count"/>
+        <result property="docPages" column="doc_pages"/>
+        <result property="secretDegree" column="secret_degree"/>
+        <result property="beginDate" column="begin_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="storagPeriod" column="storag_period"/>
+        <result property="contractA" column="contract_a"/>
+        <result property="contractB" column="contract_b"/>
+        <result property="contractC" column="contract_c"/>
+        <result property="contractD" column="contract_d"/>
+        <result property="contractE" column="contract_e"/>
+        <result property="ownDeptName" column="own_dept_name"/>
+        <result property="viewPri" column="view_pri"/>
+        <result property="archiveMode" column="archive_mode"/>
+        <result property="storePlace" column="store_place"/>
+        <result property="createUsername" column="create_username"/>
+        <result property="tranStatus" column="tran_status"/>
+        <result property="labels" column="labels"/>
+        <result property="docTypeName" column="doc_type_name"/>
+        <result property="catalogName" column="catalog_name"/>
+        <result property="status" column="status"/>
+       <!-- <result property="transStatus" column="status"/>-->
+        <result property="docTransLogId" column="doc_trans_log_id"/>
+    </resultMap>
+
+    <!-- <resultMap type="io.renren.modules.doc_manage.entity.FmsDocTransLogEntity" id="documentTransMap">
+         <result property="docId" column="doc_id"/>
+         <result property="docTransLogId" column="doc_trans_log_id"/>
+         <result property="fromUserId" column="from_user_id"/>
+         <result property="toUserId" column="to_user_id"/>
+         <result property="state" column="state"/>
+         <result property="comm" column="comm"/>
+         <result property="outTime" column="out_time"/>
+         <result property="inTime" column="in_time"/>
+         <result property="docTypeId" column="doc_type_id"/>
+         <result property="ownDeptId" column="own_dept_id"/>
+         <result property="ownUserId" column="own_user_id"/>
+         <result property="createUserId" column="create_user_id"/>
+         <result property="createTime" column="create_time"/>
+         <result property="docStyle" column="doc_style"/>
+         <result property="storePlace" column="store_place"/>
+         <result property="viewPri" column="view_pri"/>
+         <result property="docName" column="doc_name"/>
+         <result property="docNum" column="doc_num"/>
+         <result property="isAmount" column="is_amount"/>
+         <result property="amount" column="amount"/>
+         <result property="archiveMode" column="archive_mode"/>
+         <result property="docCount" column="doc_count"/>
+         <result property="docPages" column="doc_pages"/>
+         <result property="secretDegree" column="secret_degree"/>
+         <result property="beginDate" column="begin_date"/>
+         <result property="endDate" column="end_date"/>
+         <result property="storagPeriod" column="storag_period"/>
+         <result property="contractA" column="contract_a"/>
+         <result property="contractB" column="contract_b"/>
+         <result property="contractC" column="contract_c"/>
+         <result property="contractD" column="contract_d"/>
+         <result property="contractE" column="contract_e"/>
+         <result property="ownDeptName" column="own_dept_name"/>
+         <result property="viewPri" column="view_pri"/>
+         <result property="archiveMode" column="archive_mode"/>
+         <result property="storePlace" column="store_place"/>
+         <result property="createUsername" column="create_username"/>
+         <result property="tranStatus" column="tran_status"/>
+         <result property="labels" column="labels"/>
+         <result property="docTypeName" column="doc_type_name"/>
+         <result property="catalogName" column="catalog_name"/>
+         <result property="status" column="status"/>
+     </resultMap>
+ -->
+ <select id="search"  parameterType="Map" resultMap="documentMap">
+     select * from v_fms_documentinfo t
+     where
+     del_flag='0'
+     <if test="page.params.docTypeName != '%%'  ">
+         and doc_type_name like #{page.params.docTypeName}
+     </if>
+     <if test="page.params.catalogName != '%%' ">
+         and catalog_name like #{page.params.catalogName}
+     </if>
+
+     <if test="page.params.docName != '%%' ">
+         and doc_name like #{page.params.docName}
+     </if>
+     <if test="page.params.beginDatefrom != '%%' ">
+         <![CDATA[
+                 and begin_date is not null and begin_date>=#{page.params.beginDatefrom}
+                            ]]>
+     </if>
+     <if test="page.params.beginDateto!='%%' ">
+         <![CDATA[
+             and begin_date is not null and  begin_date<=#{page.params.beginDateto} ]]>
+     </if>
+     <if test="page.params.endDatefrom != '%%' ">
+         <![CDATA[
+             and end_date is not null and  end_date>=#{page.params.endDatefrom} ]]>
+     </if>
+     <if test="page.params.endDateto!='%%'">
+         <![CDATA[
+             and end_date is not null and  end_date<=#{page.params.endDateto} ]]>
+     </if>
+     <if test="page.params.contractA != '%%'">
+         and contract_a like #{page.params.contractA}
+     </if>
+     <!--ORDER BY doc_id desc-->
+
+ </select>
+
+     <select id="searchTransable" parameterType="Map" resultMap="documentMap">
+         select * from v_fms_documentinfo t
+         where
+         del_flag='0'
+         <if test="page.params.docTypeName != '%%'  ">
+             and doc_type_name like #{page.params.docTypeName}
+         </if>
+         <if test="page.params.catalogName != '%%' ">
+             and fms_doc_catalog.catalog_name like #{page.params.catalogName}
+         </if>
+
+         <if test="page.params.docName != '%%' ">
+             and doc_name like #{page.params.docName}
+         </if>
+         <if test="page.params.beginDatefrom != '%%' ">
+             <![CDATA[
+                 and begin_date is not null and begin_date>=#{page.params.beginDatefrom}
+                            ]]>
+         </if>
+         <if test="page.params.beginDateto!='%%' ">
+             <![CDATA[
+             and begin_date is not null and  begin_date<=#{page.params.beginDateto} ]]>
+         </if>
+         <if test="page.params.endDatefrom != '%%' ">
+             <![CDATA[
+             and end_date is not null and  end_date>=#{page.params.endDatefrom} ]]>
+         </if>
+         <if test="page.params.endDateto!='%%'">
+             <![CDATA[
+             and end_date is not null and  end_date<=#{page.params.endDateto} ]]>
+         </if>
+         <if test="page.params.userId != -1">
+             and own_user_id = #{page.params.userId}
+         </if>
+
+     </select>
+
+     <select id="transOut" parameterType="Map" resultType="Object" statementType="CALLABLE">
+         <![CDATA[
+             call transOut(
+                 #{arrayStr, mode=IN},
+                 #{sSplit, mode=IN},
+                 #{fromUserId, mode=IN},
+                 #{toUserId, mode=IN},
+                 #{deptId, mode=IN},
+                 #{catalogId, mode=IN},
+                 #{docTypeId, mode=IN},
+                 #{result, mode=OUT, jdbcType=INTEGER}
+             );
+         ]]>
+
+     </select>
+     <select id="transReject" parameterType="Map" resultType="Object" statementType="CALLABLE">
+         <![CDATA[
+         call transReject(
+             #{p_comm, mode=IN, jdbcType=VARCHAR},
+             #{docTranLogId, mode=IN, jdbcType=INTEGER},
+             #{result, mode=OUT, jdbcType=INTEGER}
+             );
+         ]]>
+
+     </select>
+
+     <select id="searchTransIn" parameterType="Map" resultMap="documentMap">
+         SELECT doc.*,docType.*,fms_doc_catalog.*,l.doc_trans_log_id
+         FROM fms_document  AS doc LEFT JOIN fms_doc_type AS docType ON doc.doc_type_id = docType.doc_type_id
+         LEFT JOIN fms_doc_catalog ON docType.catalog_id = fms_doc_catalog.catalog_id
+         LEFT JOIN fms_doc_trans_log AS l ON doc.doc_id = l.doc_id
+         WHERE   doc.del_flag='0'
+         AND  state = '已交出'
+         <if test="page.params.userId != -1">
+             and to_user_id = #{page.params.userId}
+         </if>
+
+     </select>
+
+     <update id="transIn" parameterType="Map" >
+         update fms_doc_trans_log
+         set in_time = now(), state = #{state},comm=#{comm}
+         where doc_id=#{docId}
+         and state = "已交出"
+         <if test="toUserId != null and toUserId !=''">
+             and fms_doc_trans_log.to_user_id = #{toUserId}
+         </if>
+
+     </update>
+ <!-- 更新document状态为交接已完成 tran_status=0 -->
+    <update id="transInUpdateOwner" parameterType="Map">
+        update fms_document
+        set tran_status=0
+        where doc_id =#{docId}
+    </update>
+    <select id="docTimelist" parameterType="Map" resultMap="documentMap">
+        SELECT *
+        FROM fms_document as doc LEFT JOIN fms_doc_type as docType on doc.doc_type_id = docType.doc_type_id
+        LEFT JOIN fms_doc_catalog on docType.catalog_id = fms_doc_catalog.catalog_id
+        where  doc.del_flag='0'
+        <if test="page.params.overtime!=null and page.params.overtime!='' ">
+            <choose>
+                <when test="page.params.overtime==7">
+                    <![CDATA[
+                and DATEDIFF(end_date,NOW())<=7
+                ]]>
+                </when>
+                <when test="page.params.overtime==14">
+                    <![CDATA[
+                and DATEDIFF(end_date,NOW())<=14
+                ]]>
+                </when>
+                <when test="page.params.overtime==30">
+                    <![CDATA[
+                and DATEDIFF(end_date,NOW())<30
+                ]]>
+                </when>
+                <when test="page.params.overtime==0">
+                    <![CDATA[
+                and DATEDIFF(end_date,NOW())>=30
+                ]]>
+                </when>
+                <otherwise>
+                    and 1=1
+                </otherwise>
+
+            </choose>
+        </if>
+    </select>
+
+
+</mapper>
